@@ -37,6 +37,8 @@ contract CreatureERC721 is ERC721URIStorage, ContextMixin, Ownable, Managed {
   uint256 private m_mintCost;
   uint256 private m_maxTokens;
 
+  event Hatched(uint256 indexed tokenId);
+
   constructor(
     string memory _baseUri,
     address _preApprovedProxyAddress,
@@ -91,6 +93,7 @@ contract CreatureERC721 is ERC721URIStorage, ContextMixin, Ownable, Managed {
   function hatch(uint256 tokenId, string memory _tokenURI) public onlyManager {
     require(tokenId != 0, "Token ID must be non-zero");
     _setTokenURI(tokenId, _tokenURI);
+    emit Hatched(tokenId);
   }
 
   function batchHatch(uint256[] memory tokenIds, string[] memory tokenUris)
