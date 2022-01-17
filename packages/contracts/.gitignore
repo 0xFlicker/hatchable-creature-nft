@@ -1,0 +1,9 @@
+
+# tsc build
+dist
+
+#Hardhat files
+cache
+artifacts
+deployments
+typechain
