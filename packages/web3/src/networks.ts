@@ -6,7 +6,29 @@ export type Network =
   | "goerli"
   | "matic"
   | "maticmum"
-  | "ganache";
+  | "ganache"
+  | "hardhat-node"
+  | "localhost";
+
+export function networkStringToNetworkType(network?: string) {
+  if (
+    [
+      "mainnet",
+      "ropsten",
+      "rinkeby",
+      "kovan",
+      "goerli",
+      "matic",
+      "maticmum",
+      "ganache",
+      "hardhat-node",
+      "localhost",
+    ].some((e) => e === network)
+  ) {
+    return network as Network;
+  }
+  return "ganache";
+}
 
 export function findContract(
   deploymentData: any,

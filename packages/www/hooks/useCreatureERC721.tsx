@@ -15,6 +15,8 @@ import {
 } from "@creaturenft/contracts/typechain";
 import { findContractAddress } from "@creaturenft/web3";
 
+import config from "../utils/config";
+
 interface IContext {
   contract?: CreatureERC721;
   provider?: ethers.providers.Web3Provider;
@@ -57,8 +59,8 @@ function useCreatureERC721(context: IContext = {}) {
     // get contract address
     const contractAddress = findContractAddress(
       networks,
-      process.env.NEXT_CHAIN_ID,
-      process.env.NEXT_NETWORK,
+      config.chainId,
+      config.network,
       "CreatureERC721"
     );
     if (contractAddress) {
@@ -73,8 +75,8 @@ function useCreatureERC721(context: IContext = {}) {
     // get contract address
     const contractAddress = findContractAddress(
       networks,
-      process.env.NEXT_CHAIN_ID,
-      process.env.NEXT_NETWORK,
+      config.chainId,
+      config.network,
       "CreatureERC721"
     );
     if (contractAddress) {
@@ -83,7 +85,6 @@ function useCreatureERC721(context: IContext = {}) {
         return;
       }
       const provider = new ethers.providers.Web3Provider(window.ethereum);
-      console.log("provider", provider);
       const contract = CreatureERC721__factory.connect(
         contractAddress,
         provider

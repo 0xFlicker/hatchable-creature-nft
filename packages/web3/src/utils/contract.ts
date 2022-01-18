@@ -1,6 +1,7 @@
 import type { Signer } from "ethers";
 import { providers } from "ethers";
 import { networks } from "@creaturenft/contracts";
+import { Network } from "../networks.js";
 import { findContractAddress } from "../networks.js";
 import type { BaseContract } from "@ethersproject/contracts";
 
@@ -12,6 +13,7 @@ type ConnectableContractFactory<T extends BaseContract> = (
 export default function contractFactory<T extends BaseContract>(
   signerOrProvider: Signer | providers.Provider,
   network: providers.Network,
+  networkName: Network,
   contractName: string,
   contractFactory: ConnectableContractFactory<T>
 ) {
@@ -19,7 +21,7 @@ export default function contractFactory<T extends BaseContract>(
     const contactAddress = findContractAddress(
       networks,
       network.chainId.toString(),
-      network.name,
+      networkName,
       contractName
     );
     if (!contactAddress) {

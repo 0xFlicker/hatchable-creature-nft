@@ -40,7 +40,7 @@ task("fund", "Sends some test funds to an account for testing")
 
 // Mints a token for a given account
 task("mint", "Mints a token for a given account")
-  .addOptionalParam("from", "The account to send the funds from", 5, types.int)
+  .addOptionalParam("from", "The account to send the funds from", 4, types.int)
   .addOptionalParam("cost", "The mint cost", 10, types.int)
   .addPositionalParam(
     "receiver",
@@ -70,7 +70,7 @@ task("mint", "Mints a token for a given account")
 
 const config: HardhatUserConfig = {
   solidity: "0.8.4",
-  defaultNetwork: "ganache",
+  defaultNetwork: "hardhat",
   namedAccounts: {
     owner: 0,
     manager: 1,
@@ -80,8 +80,24 @@ const config: HardhatUserConfig = {
     hardhat: {
       initialBaseFeePerGas: 0, // to fix : https://github.com/sc-forks/solidity-coverage/issues/652, see https://github.com/sc-forks/solidity-coverage/issues/652#issuecomment-896330136
     },
+    localhost: {
+      url: node_url("localhost"),
+      // These are the default hardhat accounts
+      accounts: [
+        "0xac0974bec39a17e36ba4a6b4d238ff944bacb478cbed5efcae784d7bf4f2ff80",
+        "0x59c6995e998f97a5a0044966f0945389dc9e86dae88c7a8412f4603b6b78690d",
+        "0x5de4111afa1a4b94908f83103eb1f1706367c2e68ca870fc3fb9a804cdab365a",
+        "0x7c852118294e51e653712a81e05800f419141751be58f605c371e15141b007a6",
+        "0x47e179ec197488593b187f80a00eb0da91f1b9d0b13f8733639f19c30a34926a",
+      ],
+      chainId: 31337,
+    },
     ganache: {
       url: node_url("ganache"),
+      accounts: accounts("ganache"),
+    },
+    "hardhat-node": {
+      url: node_url("hardhat-node"),
       accounts: accounts(),
     },
     staging: {

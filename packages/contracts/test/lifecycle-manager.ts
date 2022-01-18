@@ -24,7 +24,7 @@ async function createNftContract(
     maxTokens: 100,
   }
 ) {
-  const factory = await ethers.getContractFactory("AxolotlValleyERC721");
+  const factory = await ethers.getContractFactory("CreatureERC721");
   const greeter = await factory.deploy(
     baseUrl,
     proxy,
@@ -54,7 +54,7 @@ describe("LifecycleManager", function () {
     const lifecycleContract = await createLifecycleContract(manager);
     const nftContract = await createNftContract({
       lifecycleManager: lifecycleContract.address,
-      baseUrl: "",
+      baseUrl: "fruit://",
     });
     await lifecycleContract.setManagedContract(nftContract.address);
     // Mint a token
@@ -62,7 +62,7 @@ describe("LifecycleManager", function () {
       value: ethers.utils.parseUnits("1", "ether"),
     });
     // When minted, the tokenUri points at the hatching uri
-    expect(await nftContract.tokenURI(1)).to.equal("1");
+    expect(await nftContract.tokenURI(1)).to.equal("fruit://1");
 
     // Hatch the token
     await lifecycleContract.connect(manager).hatch(1, "foo");

@@ -22,7 +22,11 @@ export default function (
   preferWebsocket: boolean
 ): providers.Provider {
   // If running against ganache or localhost, use the local provider
-  if (network === "ganache") {
+  if (
+    network === "ganache" ||
+    network === "hardhat-node" ||
+    network === "localhost"
+  ) {
     return defaultProvider(network);
   }
   const allProviders: providers.Provider[] = [];

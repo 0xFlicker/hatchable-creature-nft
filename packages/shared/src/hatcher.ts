@@ -22,18 +22,21 @@ import {
   LifecycleManager,
 } from "@creaturenft/contracts/typechain";
 
-function lifecycleManagerOwnerAddress(network: providers.Network) {
+function lifecycleManagerOwnerAddress(
+  network: providers.Network,
+  networkName: string
+) {
   if (process.env.LIFECYCLE_MANAGER_OWNER_ADDRESS) {
     return process.env.LIFECYCLE_MANAGER_OWNER_ADDRESS;
   }
   const contractAddress = findContractOwnerAddress(
     networks,
     network.chainId.toString(),
-    network.name,
+    networkName,
     "LifecycleManager"
   );
   if (!contractAddress) {
-    throw new Error(`No contract address found for network ${network.name}`);
+    throw new Error(`No contract address found for network ${networkName}`);
   }
   return contractAddress;
 }
@@ -121,8 +124,8 @@ export async function resolver(
   // Hatch any creatures that need to be hatched
 
   if (creaturesToHatch.length > 0) {
-    const tokenUris = creaturesToHatch.map(({ tokenId }) =>
-      getAdultCreatureMetadata(tokenId)
+    const tokenUris = creaturesToHatch.map(
+      ({ tokenId }) => `ipfs://${getAdultCreatureMetadata(tokenId)}`
     );
     console.log(`Hatching ${creaturesToHatch.length} creatures`);
     const tx = await lifecycleManagerContract.batchHatch(
@@ -147,15 +150,21 @@ export default async function (
   intervalMs: number = 60 * 1000
 ) {
   const provider = defaultProvider(network);
+  await provider.send("evm_setAutomine", [false]);
+  await provider.send("evm_setIntervalMining", [20000]);
   const networkProvider = await provider.getNetwork();
 
-  const ownerAddress = lifecycleManagerOwnerAddress(networkProvider);
+  const ownerAddress = lifecycleManagerOwnerAddress(networkProvider, network);
   const signer = provider.getSigner(ownerAddress);
 
   const { topToken$, contract: creatureContract } = await creatureErc721Factory(
     network
   );
-  const lifecycleManager = lifecycleManagerFactory(signer, networkProvider);
+  const lifecycleManager = lifecycleManagerFactory(
+    signer,
+    networkProvider,
+    network
+  );
 
   // Start the resolver
   console.log("Starting resolver...");

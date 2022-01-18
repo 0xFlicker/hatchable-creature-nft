@@ -1,0 +1,21 @@
+.root {
+  margin: 8px;
+}
+
+.loading {
+  /* center in the card */
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 100%;
+  width: 100%;
+}
+
+.notFound {
+  /* center in the card */
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 100%;
+  width: 100%;
+}

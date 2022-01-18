@@ -24,6 +24,9 @@
   "references": [
     {
       "path": "../ipfs"
+    },
+    {
+      "path": "../web3"
     }
   ]
 }

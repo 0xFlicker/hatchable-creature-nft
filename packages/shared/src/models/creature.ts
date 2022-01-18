@@ -1,7 +1,7 @@
 import { dirname, resolve } from "path";
 import type { Database } from "sqlite3";
 import { BigNumber } from "ethers";
-import { adultMetadata, babyMetadata } from "@creaturenft/assets";
+import { adultMetadata } from "@creaturenft/assets";
 import {
   statementFinalize,
   statementGet,
@@ -113,8 +113,4 @@ export async function removeCreaturesFromDatabase(
 
 export function getAdultCreatureMetadata(tokenId: BigNumber) {
   return adultMetadata[tokenId.toNumber()];
-}
-
-export function getBabyCreatureMetadata(tokenId: BigNumber) {
-  return babyMetadata[tokenId.toNumber()];
 }

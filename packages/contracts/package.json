@@ -9,8 +9,10 @@
   "scripts": {
     "build": "tsc",
     "compile": "hardhat compile",
-    "deploy:ganache": "hardhat deploy --export-all deployments/networks.json",
-    "test": "hardhat test --network hardhat",
+    "deploy:localhost": "hardhat deploy --network localhost --export-all deployments/networks.json",
+    "deploy:ganache": "hardhat deploy --network ganache --export-all deployments/networks.json",
+    "deploy:hardhat": "hardhat deploy --network hardhat-node --export-all deployments/networks.json",
+    "test": "hardhat test",
     "fund": "hardhat fund"
   },
   "dependencies": {

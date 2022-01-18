@@ -1,7 +1,8 @@
 import fs from "fs";
 import { resolve, dirname } from "path";
+import { randomUUID } from "crypto";
 import { assetPath } from "./index.js";
-import type { IMetadata } from "./types.js";
+import type { IMetadata } from "@creaturenft/web3";
 import { fileURLToPath } from "url";
 import { clientFactory as createClient } from "@creaturenft/ipfs";
 import type { IPFSHTTPClient } from "ipfs-http-client";
@@ -35,78 +36,96 @@ function addViaIpfsClient(
     }, reject);
   });
 }
-
-const ipfsClient = createClient();
-const localAssetsPath = resolve(__dirname, "metadata");
-const generatedPath = resolve(assetPath, "generated");
-const generatedImagePath = resolve(generatedPath, "images");
-const generatedMetadataPath = resolve(generatedPath, "metadata");
-const eggImagePath = resolve(assetPath, "assets", "egg.png");
-
-const eggResults = await addViaIpfsClient(
-  ipfsClient,
-  {
-    content: await fs.promises.readFile(eggImagePath),
-  },
-  "egg.png"
-);
-const eggCid = `ipfs://${eggResults.cid.toString()}`;
-const metadataCids: string[] = [];
-const metadataBabyCids: string[] = [];
-
-console.log(`Loading metadata from ${generatedMetadataPath}...`);
-const metadataFiles = (await fs.promises.readdir(generatedMetadataPath))
-  .filter((f) => Number.isFinite(Number(f)))
-  .sort((a, b) => Number(a) - Number(b));
-
-const length = metadataFiles.length;
-for (let i = 0; i < length; i++) {
-  const file = metadataFiles[i];
-  const index = Number(file);
-  const imageFilePath = resolve(generatedImagePath, `${index}.png`);
-  const imageResult = await addViaIpfsClient(
+async function main() {
+  const ipfsClient = createClient();
+  const localAssetsPath = resolve(__dirname, "..", "src", "metadata");
+  const localContractAssetsPath = resolve(
+    __dirname,
+    "..",
+    "..",
+    "contracts",
+    "utils"
+  );
+  const generatedPath = resolve(assetPath, "generated");
+  const generatedImagePath = resolve(generatedPath, "images");
+  const generatedMetadataPath = resolve(generatedPath, "metadata");
+  const eggImagePath = resolve(assetPath, "assets", "egg.png");
+  console.log(`localAssetsPath: ${localAssetsPath}`);
+  const eggResults = await addViaIpfsClient(
     ipfsClient,
     {
-      content: await fs.promises.readFile(imageFilePath),
+      content: await fs.promises.readFile(eggImagePath),
     },
-    `image: ${index}.png`
+    "egg.png"
   );
-  const cid = imageResult.cid.toString();
-  const metadataFilePath = resolve(generatedMetadataPath, file);
-  const metadata = JSON.parse(
-    await fs.promises.readFile(metadataFilePath, "utf8")
-  );
-  metadata.image = `ipfs://${cid}`;
-  const babyMetadata = metadataToBabyMetadata(metadata, eggCid);
-  const metadataContent = JSON.stringify(metadata, null, 2);
-  const metadataBabyContent = JSON.stringify(babyMetadata, null, 2);
-  const metadataResult = await addViaIpfsClient(
-    ipfsClient,
-    {
-      content: metadataContent,
-    },
-    `metadata: ${index}`
-  );
-  metadataCids.push(metadataResult.cid.toString());
+  const eggCid = `ipfs://${eggResults.cid.toString()}`;
+  const metadataCids: string[] = [];
 
-  const metadataBabyResult = await addViaIpfsClient(
-    ipfsClient,
-    {
-      content: metadataBabyContent,
-    },
-    `baby metadata: ${index}`
+  console.log(`Loading metadata from ${generatedMetadataPath}...`);
+  const metadataFiles = (await fs.promises.readdir(generatedMetadataPath))
+    .filter((f) => Number.isFinite(Number(f)))
+    .sort((a, b) => Number(a) - Number(b));
+
+  const metadataIpfsBasePath = `/${randomUUID()}`;
+  console.log(`Adding baby metadata to base path ${metadataIpfsBasePath}...`);
+  await ipfsClient.files.mkdir(metadataIpfsBasePath);
+  const length = metadataFiles.length;
+  for (let i = 0; i < length; i++) {
+    const file = metadataFiles[i];
+    const index = Number(file);
+    const imageFilePath = resolve(generatedImagePath, `${index}.png`);
+    const imageResult = await addViaIpfsClient(
+      ipfsClient,
+      {
+        content: await fs.promises.readFile(imageFilePath),
+      },
+      `image: ${index}.png`
+    );
+    const cid = imageResult.cid.toString();
+    const metadataFilePath = resolve(generatedMetadataPath, file);
+    const metadata = JSON.parse(
+      await fs.promises.readFile(metadataFilePath, "utf8")
+    );
+    metadata.image = `ipfs://${cid}`;
+    const babyMetadata = metadataToBabyMetadata(metadata, eggCid);
+    const metadataContent = JSON.stringify(metadata, null, 2);
+    const metadataBabyContent = JSON.stringify(babyMetadata, null, 2);
+    const metadataResult = await addViaIpfsClient(
+      ipfsClient,
+      {
+        content: metadataContent,
+      },
+      `metadata: ${index}`
+    );
+    metadataCids.push(metadataResult.cid.toString());
+    await ipfsClient.files.write(
+      `${metadataIpfsBasePath}/${index}`,
+      metadataBabyContent,
+      {
+        create: true,
+      }
+    );
+  }
+  const babyBaseResult = await ipfsClient.files.stat(metadataIpfsBasePath);
+  await fs.promises.mkdir(localAssetsPath, { recursive: true });
+  await fs.promises.writeFile(
+    resolve(localAssetsPath, "all_metadata_cids.json"),
+    JSON.stringify(metadataCids, null, 2),
+    "utf8"
   );
-  metadataBabyCids.push(metadataBabyResult.cid.toString());
+  await fs.promises.writeFile(
+    resolve(localContractAssetsPath, "baby_metadata.json"),
+    JSON.stringify(babyBaseResult.cid.toString(), null, 2),
+    "utf8"
+  );
 }
 
-await fs.promises.mkdir(localAssetsPath, { recursive: true });
-await fs.promises.writeFile(
-  resolve(localAssetsPath, "all_metadata_cids.json"),
-  JSON.stringify(metadataCids, null, 2),
-  "utf8"
-);
-await fs.promises.writeFile(
-  resolve(localAssetsPath, "all_metadata_baby_cids.json"),
-  JSON.stringify(metadataBabyCids, null, 2),
-  "utf8"
+main().then(
+  () => {
+    console.log("Done!");
+  },
+  (err) => {
+    console.error(err);
+    process.exit(1);
+  }
 );

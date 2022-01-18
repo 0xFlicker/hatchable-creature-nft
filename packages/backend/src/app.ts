@@ -1,25 +1,7 @@
 import express from "express";
-
-import type { Network } from "@creaturenft/web3";
+import { networkStringToNetworkType } from "@creaturenft/web3";
 import { createDb, hatcherResolver, runMigrations } from "@creaturenft/shared";
 const app = express();
-
-function envToNetwork() {
-  if (
-    [
-      "mainnet",
-      "ropsten",
-      "rinkeby",
-      "kovan",
-      "goerli",
-      "matic",
-      "maticmum",
-    ].some((e) => e === process.env.NETWORK)
-  ) {
-    return process.env.NETWORK as Network;
-  }
-  return "ganache";
-}
 
 function envToCurrentMigration() {
   if (process.env.MIGRATION) {
@@ -34,5 +16,5 @@ export default async function () {
   const db = await createDb();
   await runMigrations(db, desiredMigration);
   console.log("Migrations complete");
-  hatcherResolver(envToNetwork(), db, 5000);
+  hatcherResolver(networkStringToNetworkType(process.env.NETWORK), db, 60000);
 }

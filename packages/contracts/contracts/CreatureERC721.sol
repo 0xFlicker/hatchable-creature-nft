@@ -2,10 +2,12 @@
 pragma solidity >=0.4.22 <0.9.0;
 import "@openzeppelin/contracts/access/Ownable.sol";
 import "@openzeppelin/contracts/token/ERC721/ERC721.sol";
-import "@openzeppelin/contracts/token/ERC721/extensions/ERC721URIStorage.sol";
 import "@openzeppelin/contracts/utils/Counters.sol";
 import "@openzeppelin/contracts/utils/Strings.sol";
+import "hardhat/console.sol";
+
 import "./Managed.sol";
+import "./AddressableERC721URIStorage.sol";
 
 /**
  * https://github.com/maticnetwork/pos-portal/blob/master/contracts/common/ContextMixin.sol
@@ -29,15 +31,21 @@ abstract contract ContextMixin {
   }
 }
 
-contract CreatureERC721 is ERC721URIStorage, ContextMixin, Ownable, Managed {
+contract CreatureERC721 is
+  AddressableERC721URIStorage,
+  ContextMixin,
+  Ownable,
+  Managed
+{
   using Counters for Counters.Counter;
   Counters.Counter private _tokenIds;
+  mapping(uint256 => bool) private m_hatched;
   string private m_baseURI;
   address private m_preApprovedProxyAddress;
   uint256 private m_mintCost;
   uint256 private m_maxTokens;
 
-  event Hatched(uint256 indexed tokenId);
+  event Hatched(uint256 indexed tokenId, string tokenURI);
 
   constructor(
     string memory _baseUri,
@@ -52,8 +60,17 @@ contract CreatureERC721 is ERC721URIStorage, ContextMixin, Ownable, Managed {
     m_maxTokens = _maxTokens;
   }
 
-  function _baseURI() internal view virtual override returns (string memory) {
-    return m_baseURI;
+  function _indexedBaseURI(uint256 _tokenId)
+    internal
+    view
+    override
+    returns (string memory)
+  {
+    if (m_hatched[_tokenId]) {
+      return "";
+    } else {
+      return m_baseURI;
+    }
   }
 
   function mintCost() public view returns (uint256) {
@@ -92,8 +109,10 @@ contract CreatureERC721 is ERC721URIStorage, ContextMixin, Ownable, Managed {
 
   function hatch(uint256 tokenId, string memory _tokenURI) public onlyManager {
     require(tokenId != 0, "Token ID must be non-zero");
+    require(!m_hatched[tokenId], "Token already hatched");
+    m_hatched[tokenId] = true;
     _setTokenURI(tokenId, _tokenURI);
-    emit Hatched(tokenId);
+    emit Hatched(tokenId, _tokenURI);
   }
 
   function batchHatch(uint256[] memory tokenIds, string[] memory tokenUris)
@@ -105,7 +124,7 @@ contract CreatureERC721 is ERC721URIStorage, ContextMixin, Ownable, Managed {
       "Token ID and URI arrays must be the same length"
     );
     for (uint256 i = 0; i < tokenIds.length; i++) {
-      _setTokenURI(tokenIds[i], tokenUris[i]);
+      hatch(tokenIds[i], tokenUris[i]);
     }
   }
 

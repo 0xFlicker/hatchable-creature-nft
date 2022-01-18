@@ -9,13 +9,16 @@ export function node_url(networkName: string): string {
   if (networkName) {
     const uri = process.env["ETH_NODE_URI_" + networkName.toUpperCase()];
     if (uri && uri !== "") {
+      console.log("Using node url from env: ", uri);
       return uri;
     }
   }
 
   if (networkName === "ganache") {
-    // do not use ETH_NODE_URI
     return "http://localhost:7545";
+  }
+  if (networkName === "hardhat-node") {
+    return "http://localhost:8545";
   }
 
   let uri = process.env.ETH_NODE_URI;
@@ -83,7 +86,6 @@ export function addForkConfiguration(
       }
     }
   }
-
   const newNetworks = {
     ...networks,
     hardhat: {

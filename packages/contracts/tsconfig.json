@@ -21,6 +21,7 @@
   "include": [
     "./hardhat.config.ts",
     "./index.ts",
+    "utils/**/*.json",
     "deploy/**/*.ts",
     "typechain/**/*.ts",
     "utils/**/*.ts",

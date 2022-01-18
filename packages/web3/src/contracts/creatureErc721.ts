@@ -21,12 +21,14 @@ import { TransferEvent } from "@creaturenft/contracts/typechain/ERC721";
 import contractFactory from "../utils/contract.js";
 
 export async function creatureErc721ContractFactory(
-  provider: providers.Provider
+  provider: providers.Provider,
+  networkName: Network
 ) {
   const network = await provider.getNetwork();
   return contractFactory(
     provider,
     network,
+    networkName,
     "CreatureERC721",
     CreatureERC721__factory.connect
   );
@@ -68,7 +70,7 @@ export function cachedTokenIsMinted(contract: CreatureERC721) {
 
 export default async function (network: Network) {
   const provider = fallbackProvider(network, true);
-  const contract = await creatureErc721ContractFactory(provider);
+  const contract = await creatureErc721ContractFactory(provider, network);
   return {
     ...cachedTokenIsMinted(contract),
     contract,
