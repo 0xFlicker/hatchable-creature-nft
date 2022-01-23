@@ -1,9 +1,9 @@
 import fs from "fs";
-import { resolve } from "path";
+import { dirname, resolve } from "path";
+import { fileURLToPath } from "url";
 import { interval, merge, concatMap, takeLast, from, map, tap } from "rxjs";
 import { CID, IPFSHTTPClient } from "ipfs-http-client";
 import { createLink, createNode } from "@ipld/dag-pb";
-import { getContractOwner } from "@creaturenft/contracts";
 import { assetPath } from "@creaturenft/assets";
 import type { Database } from "sqlite3";
 import {
@@ -37,6 +37,25 @@ import {
 import { updateBaseUriToTokenCount } from "./ipfs/metadata.js";
 
 const CONFIRMING_BLOCKS = 3;
+
+const __dirname = dirname(fileURLToPath(import.meta.url));
+
+function getContractOwner(network: string, contractName: string) {
+  // FIXME: no code safety here, this will blow up if anything is missing
+  const contractJson = JSON.parse(
+    fs.readFileSync(
+      resolve(
+        __dirname,
+        "..",
+        "..",
+        "contracts",
+        `./deployments/${network}/${contractName}.json`
+      ),
+      "utf8"
+    )
+  );
+  return contractJson.receipt.from;
+}
 
 function lifecycleManagerOwnerAddress(
   network: providers.Network,

@@ -6,8 +6,8 @@
   "type": "module",
   "scripts": {
     "build": "tsc --build",
-    "assets:upload": "yarn build && node ./dist/copy-assets.js",
-    "assets:test": "yarn build && node ./dist/generate.js"
+    "upload": "yarn build && node ./dist/copy-assets.js",
+    "generate": "yarn build && node ./dist/generate.js"
   },
   "devDependencies": {
     "@napi-rs/canvas": "^0.1.19",

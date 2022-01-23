@@ -17,7 +17,6 @@ import {
   CreatureERC721,
   CreatureERC721__factory,
 } from "@creaturenft/contracts";
-import { TransferEvent } from "@creaturenft/contracts/typechain/ERC721";
 import contractFactory from "../utils/contract.js";
 
 export async function creatureErc721ContractFactory(
