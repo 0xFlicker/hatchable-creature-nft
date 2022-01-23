@@ -5,9 +5,29 @@ import { assetPath } from "./index.js";
 import type { IMetadata } from "@creaturenft/web3";
 import { fileURLToPath } from "url";
 import { clientFactory as createClient } from "@creaturenft/ipfs";
-import type { IPFSHTTPClient } from "ipfs-http-client";
+import type { CID, IPFSHTTPClient } from "ipfs-http-client";
+import { createLink, decode } from "@ipld/dag-pb";
+import { AddResult } from "ipfs-core-types/src/root";
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
+
+// const creatureCid = await ipfsClient.add({
+//   content: await fs.promises.readFile(
+//     resolve(, tokenId),
+//     "utf8"
+//   ),
+// });
+
+async function updateIpfsWithNewCreatures(
+  ipfsClient: IPFSHTTPClient,
+  tokenId: string,
+  rootCid: CID,
+  metadataCid: AddResult
+) {
+  const link = createLink(tokenId, metadataCid.size, metadataCid.cid);
+  const rmMetadataCid = await ipfsClient.object.patch.rmLink(rootCid, "1");
+  return await ipfsClient.object.patch.addLink(rmMetadataCid, link);
+}
 
 function metadataToBabyMetadata(
   metadata: IMetadata,
@@ -69,7 +89,7 @@ async function main() {
   const metadataIpfsBasePath = `/${randomUUID()}`;
   console.log(`Adding baby metadata to base path ${metadataIpfsBasePath}...`);
   await ipfsClient.files.mkdir(metadataIpfsBasePath);
-  const length = metadataFiles.length;
+  const length = 2; // metadataFiles.length;
   for (let i = 0; i < length; i++) {
     const file = metadataFiles[i];
     const index = Number(file);
@@ -107,6 +127,23 @@ async function main() {
     );
   }
   const babyBaseResult = await ipfsClient.files.stat(metadataIpfsBasePath);
+  const parent = await ipfsClient.block.get(babyBaseResult.cid);
+  // Decode parent block
+  // const parentBlock = decode(parent);
+  // parentBlock.Links = parentBlock.Links.filter(({ Name }) => Name === "1");
+  const metadataFilePath = resolve(generatedMetadataPath, "1");
+  const metadataCid = await ipfsClient.add({
+    content: await fs.promises.readFile(metadataFilePath, "utf8"),
+  });
+  console.log(
+    await updateIpfsWithNewCreatures(
+      ipfsClient,
+      "1",
+      babyBaseResult.cid,
+      metadataCid
+    )
+  );
+
   await fs.promises.mkdir(localAssetsPath, { recursive: true });
   await fs.promises.writeFile(
     resolve(localAssetsPath, "all_metadata_cids.json"),

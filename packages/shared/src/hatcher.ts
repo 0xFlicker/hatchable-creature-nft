@@ -1,5 +1,10 @@
+import fs from "fs";
+import { resolve } from "path";
 import { interval, merge, concatMap, takeLast, from, map, tap } from "rxjs";
+import { CID, IPFSHTTPClient } from "ipfs-http-client";
+import { createLink, createNode } from "@ipld/dag-pb";
 import { networks } from "@creaturenft/contracts";
+import { assetPath } from "@creaturenft/assets";
 import type { Database } from "sqlite3";
 import {
   defaultProvider,
@@ -8,6 +13,7 @@ import {
   findContractOwnerAddress,
   Network,
 } from "@creaturenft/web3";
+
 import { providers, BigNumber } from "ethers";
 import {
   getAdultCreatureMetadata,
@@ -39,6 +45,39 @@ function lifecycleManagerOwnerAddress(
     throw new Error(`No contract address found for network ${networkName}`);
   }
   return contractAddress;
+}
+
+async function updateIpfsWithNewCreatures(
+  ipfsClient: IPFSHTTPClient,
+  creatures: ICreatureModel[],
+  rootCid: CID,
+  abortController?: AbortController
+) {
+  // ipfsClient.object.patch.addLink(rootCid,
+  const assetsPackageAdultMetadata = resolve(
+    assetPath,
+    "generated",
+    "metadata"
+  );
+  let cid: CID = rootCid;
+  for (const creature of creatures) {
+    const tokenId = creature.tokenId.toString();
+    const creatureCid = await ipfsClient.add({
+      content: await fs.promises.readFile(
+        resolve(assetsPackageAdultMetadata, tokenId),
+        "utf8"
+      ),
+    });
+    const link = createLink(
+      `$/{creatureCid.path}`,
+      creatureCid.size,
+      creatureCid.cid
+    );
+
+    cid = await ipfsClient.object.patch.addLink(cid, link, {
+      signal: abortController?.signal,
+    });
+  }
 }
 
 export async function resolver(
@@ -150,8 +189,8 @@ export default async function (
   intervalMs: number = 60 * 1000
 ) {
   const provider = defaultProvider(network);
-  await provider.send("evm_setAutomine", [false]);
-  await provider.send("evm_setIntervalMining", [20000]);
+  // await provider.send("evm_setAutomine", [false]);
+  // await provider.send("evm_setIntervalMining", [20000]);
   const networkProvider = await provider.getNetwork();
 
   const ownerAddress = lifecycleManagerOwnerAddress(networkProvider, network);
@@ -170,12 +209,9 @@ export default async function (
   console.log("Starting resolver...");
   merge(interval(intervalMs), topToken$)
     .pipe(
-      tap(() => console.log("Resolving creatures...")),
-      map(() => undefined),
-      concatMap(() => {
-        console.log("Inside concatMap");
-        return from(resolver(creatureContract, lifecycleManager, provider, db));
-      })
+      concatMap(() =>
+        from(resolver(creatureContract, lifecycleManager, provider, db))
+      )
     )
     .subscribe(() => "console.log('Resolver ran')");
 }
