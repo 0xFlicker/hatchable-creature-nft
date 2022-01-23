@@ -1,6 +1,7 @@
 import express from "express";
 import { networkStringToNetworkType } from "@creaturenft/web3";
 import { createDb, hatcherResolver, runMigrations } from "@creaturenft/shared";
+import createIpfsClient from "./ipfs/client.js";
 const app = express();
 
 function envToCurrentMigration() {
@@ -16,5 +17,12 @@ export default async function () {
   const db = await createDb();
   await runMigrations(db, desiredMigration);
   console.log("Migrations complete");
-  hatcherResolver(networkStringToNetworkType(process.env.NETWORK), db, 60000);
+
+  const ipfsClient = createIpfsClient();
+  hatcherResolver(
+    networkStringToNetworkType(process.env.NETWORK),
+    ipfsClient,
+    db,
+    5000
+  );
 }

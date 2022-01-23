@@ -53,7 +53,7 @@ describe("CreatureERC721", function () {
       contract.connect(user).mint(user.address, {
         value: ethers.utils.parseUnits("1"),
       })
-    ).to.changeEtherBalance(owner, ethers.utils.parseUnits("1", "ether"));
+    ).to.changeEtherBalance(contract, ethers.utils.parseUnits("1", "ether"));
   });
   it("credits 1 token to the minter", async () => {
     const user = accounts[1];
@@ -71,7 +71,7 @@ describe("CreatureERC721", function () {
       contract.connect(user).mint(friend.address, {
         value: ethers.utils.parseUnits("1"),
       })
-    ).to.changeEtherBalance(owner, ethers.utils.parseUnits("1", "ether"));
+    ).to.changeEtherBalance(contract, ethers.utils.parseUnits("1", "ether"));
     await expect(() =>
       contract.connect(user).mint(friend.address, {
         value: ethers.utils.parseUnits("1"),
@@ -132,7 +132,7 @@ describe("CreatureERC721", function () {
     await contract.connect(user).mint(user.address, {
       value: ethers.utils.parseUnits("1"),
     });
-    await expect(contract.connect(owner).hatch("1", "foo")).to.be.revertedWith(
+    await expect(contract.connect(owner).setBaseURI("foo")).to.be.revertedWith(
       "Only manager can call this function"
     );
   });

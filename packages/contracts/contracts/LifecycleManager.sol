@@ -5,9 +5,11 @@ import "./CreatureERC721.sol";
 
 contract LifecycleManager is Ownable {
   CreatureERC721 private m_managedContract;
+  uint256 private m_lastTokenIdUpdated;
 
   constructor(address _managedContract) {
     m_managedContract = CreatureERC721(_managedContract);
+    m_lastTokenIdUpdated = 0;
   }
 
   function managedContract() public view returns (CreatureERC721) {
@@ -18,14 +20,15 @@ contract LifecycleManager is Ownable {
     m_managedContract = CreatureERC721(_managedContract);
   }
 
-  function hatch(uint256 tokenId, string calldata tokenUri) public onlyOwner {
-    m_managedContract.hatch(tokenId, tokenUri);
+  function lastTokenIdUpdated() public view returns (uint256) {
+    return m_lastTokenIdUpdated;
   }
 
-  function batchHatch(uint256[] calldata tokenIds, string[] calldata tokenUris)
+  function updateMetadata(string calldata _baseUri, uint256 _includesTokenId)
     public
     onlyOwner
   {
-    m_managedContract.batchHatch(tokenIds, tokenUris);
+    m_managedContract.setBaseURI(_baseUri);
+    m_lastTokenIdUpdated = _includesTokenId;
   }
 }

@@ -7,3 +7,6 @@ cache
 artifacts
 deployments
 typechain
+
+# asset generated files
+utils/baby_metadata.json

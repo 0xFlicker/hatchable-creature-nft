@@ -3,8 +3,10 @@ import { dbRun, dbGet } from "../utils/db.js";
 
 import migration0 from "./0.js";
 import migration1 from "./1.js";
+import migration2 from "./2.js";
+import migration3 from "./3.js";
 
-const migrations = [migration0, migration1];
+const migrations = [migration0, migration1, migration2, migration3];
 
 export default async function (db: Database, desiredMigration: number) {
   // Always run 0 migration to create migrations table

@@ -18,7 +18,8 @@ import { providers, BigNumber } from "ethers";
 import {
   getAdultCreatureMetadata,
   ICreatureModel,
-  iterateAllCreates,
+  iterateAllCreatures,
+  iterateAllCreaturesHatchingLessThan,
   needsHatching,
   removeCreaturesFromDatabase,
   saveCreatureToDatabase,
@@ -27,6 +28,16 @@ import {
   CreatureERC721,
   LifecycleManager,
 } from "@creaturenft/contracts/typechain";
+import {
+  addPendingUpdateTransaction,
+  getPendingUpdateTransactions,
+  IUpdateBaseUri,
+  removePendingUpdateTransaction,
+  saveUpdateBaseUri,
+} from "./models/updateBaseUri.js";
+import { updateBaseUriToTokenCount } from "./ipfs/metadata.js";
+
+const CONFIRMING_BLOCKS = 3;
 
 function lifecycleManagerOwnerAddress(
   network: providers.Network,
@@ -83,6 +94,7 @@ async function updateIpfsWithNewCreatures(
 export async function resolver(
   creatureContract: CreatureERC721,
   lifecycleManagerContract: LifecycleManager,
+  ipfsClient: IPFSHTTPClient,
   provider: providers.Provider,
   db: Database
 ): Promise<void> {
@@ -98,10 +110,9 @@ export async function resolver(
   const creaturesToSave: ICreatureModel[] = [];
 
   // Iterate over all tokens and check if they are minted and waiting to hatch
-  const [creatures, cancel] = await iterateAllCreates(db);
-  let lastKnownTokenId = BigNumber.from(0);
+  const [creatures, cancel] = await iterateAllCreatures(db);
+  let lastKnownTokenId = await lifecycleManagerContract.lastTokenIdUpdated();
   for await (const creature of creatures) {
-    console.log(`Checking creature ${creature.tokenId.toNumber()}`);
     if (tokenCount.lt(creature.tokenId)) {
       console.info(
         `Creature ${
@@ -111,20 +122,9 @@ export async function resolver(
       creaturesToRemove.push(creature.tokenId);
       continue;
     }
-    // Check if the creature has been hatched
-    if (creature.status === "hatching" && creature.pendingTx) {
-      const tx = await provider.getTransaction(creature.pendingTx);
-      if (tx.blockNumber) {
-        console.info(`Creature ${creature.tokenId} has been hatched`);
-        creature.pendingTx = null;
-        creature.status = "hatched";
-        creaturesToSave.push(creature);
-        continue;
-      }
-    }
 
     // TODO: Check if pending transaction is stale / failed
-    if (needsHatching(creature) && !creature.pendingTx) {
+    if (needsHatching(creature)) {
       console.info(`� Hatching BABY creature ${creature.tokenId} �`);
       creaturesToHatch.push(creature);
     }
@@ -144,38 +144,82 @@ export async function resolver(
       i++
     ) {
       const tokenId = BigNumber.from(i);
-      const tokenUri = await creatureContract.tokenURI(tokenId);
-      if (!tokenUri.includes(getAdultCreatureMetadata(tokenId))) {
-        creaturesToHatch.push({
-          tokenId,
-          status: "unknown",
-          pendingTx: null,
-        });
-      } else {
-        creaturesToSave.push({
-          tokenId,
-          status: "hatched",
+      console.log(`Creature ${tokenId} is new and being queued for hatching.`);
+      creaturesToHatch.push({
+        tokenId,
+        status: "unknown",
+      });
+    }
+  }
+  // Fetch pending transactions, to make sure we don't double-hatch
+  const pendingTransactions = await getPendingUpdateTransactions(db);
+  // Find pending transactions to remove
+  const transactionsThatHaveConfirmed: IUpdateBaseUri[] = [];
+  const currentBlockNumber = await provider.getBlockNumber();
+  for (let pendingTransaction of pendingTransactions) {
+    if (pendingTransaction.pendingTx) {
+      const transaction = await provider.getTransaction(
+        pendingTransaction.pendingTx
+      );
+      if (
+        transaction.blockNumber &&
+        transaction.blockNumber + CONFIRMING_BLOCKS <= currentBlockNumber
+      ) {
+        console.log(`Transaction ${pendingTransaction.pendingTx} confirmed`);
+        transactionsThatHaveConfirmed.push({
+          ...pendingTransaction,
           pendingTx: null,
         });
       }
     }
   }
-  // Hatch any creatures that need to be hatched
+  // Remove pending transactions that have confirmed
+  if (transactionsThatHaveConfirmed.length > 0) {
+    for (let transaction of transactionsThatHaveConfirmed) {
+      await removePendingUpdateTransaction(db, transaction.id);
+    }
+  }
 
-  if (creaturesToHatch.length > 0) {
-    const tokenUris = creaturesToHatch.map(
-      ({ tokenId }) => `ipfs://${getAdultCreatureMetadata(tokenId)}`
+  // TODO: Retry failed/stuck transactions / write a general purpose transaction manager
+
+  // Hatch any creatures that need to be hatched
+  if (creaturesToHatch.length > 0 && lastKnownTokenId.lt(tokenCount)) {
+    // Create a new CID for the new package
+    const newBaseCid = await updateBaseUriToTokenCount(
+      ipfsClient,
+      lastKnownTokenId.toNumber(),
+      tokenCount.toNumber()
     );
-    console.log(`Hatching ${creaturesToHatch.length} creatures`);
-    const tx = await lifecycleManagerContract.batchHatch(
-      creaturesToHatch.map(({ tokenId }) => tokenId),
-      tokenUris
+    const pendingTx = await lifecycleManagerContract.updateMetadata(
+      newBaseCid,
+      tokenCount
+    );
+    await addPendingUpdateTransaction(
+      db,
+      tokenCount,
+      pendingTx.hash,
+      newBaseCid
     );
     for (const creature of creaturesToHatch) {
-      creature.pendingTx = tx.hash;
-      creature.status = "hatching";
-      creaturesToSave.push(creature);
+      console.log(
+        `Creature ${creature.tokenId.toString()} is pending hatching.`
+      );
+      creaturesToSave.push({
+        ...creature,
+        status: "hatching",
+      });
     }
+  }
+  const [hatchingCreatures] = await iterateAllCreaturesHatchingLessThan(
+    db,
+    lastKnownTokenId
+  );
+  for await (const creature of hatchingCreatures) {
+    console.log(`Creature ${creature.tokenId.toString()} is now hatched`);
+    creaturesToSave.push({
+      ...creature,
+      status: "hatched",
+    });
   }
   // Update the database with the new status
   for (const creature of creaturesToSave) {
@@ -185,12 +229,13 @@ export async function resolver(
 
 export default async function (
   network: Network,
+  ipfsClient: IPFSHTTPClient,
   db: Database,
   intervalMs: number = 60 * 1000
 ) {
   const provider = defaultProvider(network);
   // await provider.send("evm_setAutomine", [false]);
-  // await provider.send("evm_setIntervalMining", [20000]);
+  // await provider.send("evm_setIntervalMining", [1000]);
   const networkProvider = await provider.getNetwork();
 
   const ownerAddress = lifecycleManagerOwnerAddress(networkProvider, network);
@@ -210,7 +255,9 @@ export default async function (
   merge(interval(intervalMs), topToken$)
     .pipe(
       concatMap(() =>
-        from(resolver(creatureContract, lifecycleManager, provider, db))
+        from(
+          resolver(creatureContract, lifecycleManager, ipfsClient, provider, db)
+        )
       )
     )
     .subscribe(() => "console.log('Resolver ran')");

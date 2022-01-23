@@ -2,12 +2,12 @@
 pragma solidity >=0.4.22 <0.9.0;
 import "@openzeppelin/contracts/access/Ownable.sol";
 import "@openzeppelin/contracts/token/ERC721/ERC721.sol";
+import "@openzeppelin/contracts/token/ERC721/extensions/ERC721URIStorage.sol";
 import "@openzeppelin/contracts/utils/Counters.sol";
 import "@openzeppelin/contracts/utils/Strings.sol";
 import "hardhat/console.sol";
 
 import "./Managed.sol";
-import "./AddressableERC721URIStorage.sol";
 
 /**
  * https://github.com/maticnetwork/pos-portal/blob/master/contracts/common/ContextMixin.sol
@@ -31,15 +31,9 @@ abstract contract ContextMixin {
   }
 }
 
-contract CreatureERC721 is
-  AddressableERC721URIStorage,
-  ContextMixin,
-  Ownable,
-  Managed
-{
+contract CreatureERC721 is ERC721URIStorage, ContextMixin, Ownable, Managed {
   using Counters for Counters.Counter;
   Counters.Counter private _tokenIds;
-  mapping(uint256 => bool) private m_hatched;
   string private m_baseURI;
   address private m_preApprovedProxyAddress;
   uint256 private m_mintCost;
@@ -58,19 +52,6 @@ contract CreatureERC721 is
     m_preApprovedProxyAddress = _preApprovedProxyAddress;
     m_mintCost = _mintCost;
     m_maxTokens = _maxTokens;
-  }
-
-  function _indexedBaseURI(uint256 _tokenId)
-    internal
-    view
-    override
-    returns (string memory)
-  {
-    if (m_hatched[_tokenId]) {
-      return "";
-    } else {
-      return m_baseURI;
-    }
   }
 
   function mintCost() public view returns (uint256) {
@@ -93,39 +74,23 @@ contract CreatureERC721 is
     m_maxTokens = _maxTokens;
   }
 
+  function _baseURI() internal view override returns (string memory) {
+    return m_baseURI;
+  }
+
+  function setBaseURI(string memory _baseUri) public onlyManager {
+    m_baseURI = _baseUri;
+  }
+
   function mint(address to) public payable returns (uint256) {
     //require payment greater than mint cost
     require(msg.value >= mintCost(), "Insufficient payment");
-    // send value to owner, anything over mintCost is a donation
-    (bool success, ) = owner().call{ value: msg.value }("");
-    require(success);
 
     _tokenIds.increment();
     uint256 newItemId = _tokenIds.current();
     _mint(to, newItemId);
     _setTokenURI(newItemId, Strings.toString(newItemId));
     return newItemId;
-  }
-
-  function hatch(uint256 tokenId, string memory _tokenURI) public onlyManager {
-    require(tokenId != 0, "Token ID must be non-zero");
-    require(!m_hatched[tokenId], "Token already hatched");
-    m_hatched[tokenId] = true;
-    _setTokenURI(tokenId, _tokenURI);
-    emit Hatched(tokenId, _tokenURI);
-  }
-
-  function batchHatch(uint256[] memory tokenIds, string[] memory tokenUris)
-    public
-    onlyManager
-  {
-    require(
-      tokenIds.length == tokenUris.length,
-      "Token ID and URI arrays must be the same length"
-    );
-    for (uint256 i = 0; i < tokenIds.length; i++) {
-      hatch(tokenIds[i], tokenUris[i]);
-    }
   }
 
   /**

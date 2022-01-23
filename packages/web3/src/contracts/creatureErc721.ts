@@ -42,12 +42,14 @@ export function cachedTokenIsMinted(contract: CreatureERC721) {
   });
 
   function topTokenObservable() {
-    return topTokenSubject.asObservable().pipe(
-      // Take latest if it is larger than the current value
-      distinctUntilChanged((a, b) => a.lt(b)),
-      // Take the last value
-      last()
-    );
+    return topTokenSubject.asObservable();
+    // Probably not needed
+    // .pipe(
+    //   // Take latest if it is larger than the current value
+    //   distinctUntilChanged((a, b) => a.lt(b)),
+    //   // Take the last value
+    //   last()
+    // );
   }
   const topToken$ = topTokenObservable();
   const tokenChecker = async (tokenId: BigNumber) => {

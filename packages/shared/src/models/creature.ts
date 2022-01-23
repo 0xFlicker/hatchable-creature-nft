@@ -1,35 +1,25 @@
 import { dirname, resolve } from "path";
+
+import { fileURLToPath } from "url";
 import type { Database } from "sqlite3";
 import { BigNumber } from "ethers";
-import { adultMetadata } from "@creaturenft/assets";
 import {
   statementFinalize,
   statementGet,
   iterate,
   dbRun,
 } from "../utils/db.js";
-import { fileURLToPath } from "url";
+import adultMetadataCids from "../all_metadata_cids.json";
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 
-export type ICreatureModelStatus =
-  | "unknown"
-  | "nil"
-  | "baby"
-  | "hatching"
-  | "hatched";
+export type ICreatureModelStatus = "unknown" | "nil" | "hatching" | "hatched";
 export interface ICreatureModel {
   tokenId: BigNumber;
   status: ICreatureModelStatus;
-  pendingTx: string | null;
 }
 
-const definedStatus = new Set<ICreatureModelStatus>([
-  "nil",
-  "baby",
-  "hatching",
-  "hatched",
-]);
+const definedStatus = new Set<ICreatureModelStatus>(["nil", "hatched"]);
 function isDefinedCreateStatus(status: string): status is ICreatureModelStatus {
   return definedStatus.has(status as ICreatureModelStatus);
 }
@@ -42,19 +32,14 @@ function mapToCreatureStatus(status: string): ICreatureModelStatus {
 function mapToCreatureTokenIndex(tokenId: any): BigNumber {
   return BigNumber.from(tokenId);
 }
-function mapToCreaturePendingTx(pendingTx: any): string | null {
-  return pendingTx === null ? null : pendingTx.toString();
-}
 function mapToCreatureModel(row: any): ICreatureModel {
   return {
     tokenId: mapToCreatureTokenIndex(row.token_id),
     status: mapToCreatureStatus(row.status),
-    pendingTx: mapToCreaturePendingTx(row.pending_tx),
   };
 }
-
 export function needsHatching(creature: ICreatureModel): boolean {
-  return creature.status === "nil" || creature.status === "baby";
+  return creature.status === "nil" || creature.status === "unknown";
 }
 
 export async function getCreateFromDatabase(
@@ -62,7 +47,7 @@ export async function getCreateFromDatabase(
   tokenId: number
 ): Promise<ICreatureModel> {
   const stmt = db.prepare(
-    `SELECT token_id, status, pending_tx FROM creature_models WHERE tokenId = ?`,
+    `SELECT token_id, status FROM creature_models WHERE tokenId = ?`,
     tokenId
   );
   const creatureModel = await statementGet(stmt);
@@ -76,18 +61,28 @@ export async function saveCreatureToDatabase(
 ) {
   await dbRun(
     db,
-    `INSERT OR REPLACE INTO creature_models (token_id, status, pending_tx) VALUES (?, ?, ?)`,
+    `INSERT OR REPLACE INTO creature_models (token_id, status) VALUES (?, ?)`,
     creature.tokenId.toNumber(),
-    creature.status,
-    creature.pendingTx
+    creature.status
   );
 }
 
-export const iterateAllCreates = (db: Database) =>
+export const iterateAllCreatures = (db: Database) =>
   iterate(
     db,
     mapToCreatureModel,
-    `SELECT token_id, status, pending_tx FROM creature_models ORDER BY token_id ASC`
+    `SELECT token_id, status FROM creature_models ORDER BY token_id ASC`
+  );
+
+export const iterateAllCreaturesHatchingLessThan = (
+  db: Database,
+  tokenCount: BigNumber
+) =>
+  iterate(
+    db,
+    mapToCreatureModel,
+    `SELECT token_id, status FROM creature_models WHERE status = "hatching" AND token_id <= ?`,
+    tokenCount.toNumber()
   );
 
 export async function removeCreaturesFromDatabase(
@@ -112,5 +107,5 @@ export async function removeCreaturesFromDatabase(
 }
 
 export function getAdultCreatureMetadata(tokenId: BigNumber) {
-  return adultMetadata[tokenId.toNumber()];
+  return adultMetadataCids[tokenId.toNumber()];
 }

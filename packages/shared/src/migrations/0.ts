@@ -14,5 +14,4 @@ export async function down(db: Database) {
 export default {
   up,
   down,
-  order: 0,
 };

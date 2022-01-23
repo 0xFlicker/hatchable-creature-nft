@@ -54,7 +54,7 @@ describe("LifecycleManager", function () {
     const lifecycleContract = await createLifecycleContract(manager);
     const nftContract = await createNftContract({
       lifecycleManager: lifecycleContract.address,
-      baseUrl: "fruit://",
+      baseUrl: "ipfs://fruit/",
     });
     await lifecycleContract.setManagedContract(nftContract.address);
     // Mint a token
@@ -62,13 +62,14 @@ describe("LifecycleManager", function () {
       value: ethers.utils.parseUnits("1", "ether"),
     });
     // When minted, the tokenUri points at the hatching uri
-    expect(await nftContract.tokenURI(1)).to.equal("fruit://1");
+    expect(await nftContract.tokenURI(1)).to.equal("ipfs://fruit/1");
 
     // Hatch the token
-    await lifecycleContract.connect(manager).hatch(1, "foo");
+    await lifecycleContract.connect(manager).updateMetadata("ipfs://veg/", 1);
 
     // When hatched, the tokenUri points at the hatched uri
-    expect(await nftContract.tokenURI(1)).to.equal("foo");
+    expect(await nftContract.tokenURI(1)).to.equal("ipfs://veg/1");
+    expect(await lifecycleContract.lastTokenIdUpdated()).to.equal(1);
   });
 
   it("must be connected to nft contract", async () => {
@@ -88,7 +89,7 @@ describe("LifecycleManager", function () {
 
     // attempt to hatch the token is an error
     await expect(
-      lifecycleContract.connect(manager).hatch(1, "foo")
+      lifecycleContract.connect(manager).updateMetadata("foo", 1)
     ).to.be.revertedWith("function call to a non-contract account");
   });
 
@@ -104,20 +105,5 @@ describe("LifecycleManager", function () {
     await expect(
       lifecycleContract.connect(user).setManagedContract(nftContract.address)
     ).to.be.revertedWith("Ownable: caller is not the owner");
-  });
-
-  it("token must exist", async () => {
-    const [owner, manager, user] = accounts;
-    const lifecycleContract = await createLifecycleContract(manager);
-    const nftContract = await createNftContract({
-      lifecycleManager: lifecycleContract.address,
-      baseUrl: "",
-    });
-    // Connect the contracts
-    await lifecycleContract.setManagedContract(nftContract.address);
-    // Hatch the token that does not exist is an error
-    await expect(
-      lifecycleContract.connect(manager).hatch(1, "foo")
-    ).to.be.revertedWith("ERC721URIStorage: URI set of nonexistent token");
   });
 });
