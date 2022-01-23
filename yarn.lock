@@ -130,9 +130,16 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "@creaturenft/assets@workspace:packages/assets"
   dependencies:
+    "@napi-rs/canvas": ^0.1.19
+    "@types/cli-progress": ^3.9.2
+    "@types/color-name": ^1.1.1
     "@types/node": ^17.0.8
+    "@types/node-emoji": ^1.8.1
+    cli-progress: ^3.10.0
+    color-name: ^1.1.4
     ipfs-http-client: ^55.0.0
     minimist: ^1.2.5
+    node-emoji: ^1.11.0
     rimraf: ^3.0.2
     typescript: ^4.5.4
   languageName: unknown
@@ -1500,6 +1507,105 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@napi-rs/canvas-android-arm64@npm:0.1.19":
+  version: 0.1.19
+  resolution: "@napi-rs/canvas-android-arm64@npm:0.1.19"
+  conditions: os=android & cpu=arm64
+  languageName: node
+  linkType: hard
+
+"@napi-rs/canvas-darwin-arm64@npm:0.1.19":
+  version: 0.1.19
+  resolution: "@napi-rs/canvas-darwin-arm64@npm:0.1.19"
+  conditions: os=darwin & cpu=arm64
+  languageName: node
+  linkType: hard
+
+"@napi-rs/canvas-darwin-x64@npm:0.1.19":
+  version: 0.1.19
+  resolution: "@napi-rs/canvas-darwin-x64@npm:0.1.19"
+  conditions: os=darwin & cpu=x64
+  languageName: node
+  linkType: hard
+
+"@napi-rs/canvas-linux-arm-gnueabihf@npm:0.1.19":
+  version: 0.1.19
+  resolution: "@napi-rs/canvas-linux-arm-gnueabihf@npm:0.1.19"
+  conditions: os=linux & cpu=arm
+  languageName: node
+  linkType: hard
+
+"@napi-rs/canvas-linux-arm64-gnu@npm:0.1.19":
+  version: 0.1.19
+  resolution: "@napi-rs/canvas-linux-arm64-gnu@npm:0.1.19"
+  conditions: os=linux & cpu=arm64
+  languageName: node
+  linkType: hard
+
+"@napi-rs/canvas-linux-arm64-musl@npm:0.1.19":
+  version: 0.1.19
+  resolution: "@napi-rs/canvas-linux-arm64-musl@npm:0.1.19"
+  conditions: os=linux & cpu=arm64
+  languageName: node
+  linkType: hard
+
+"@napi-rs/canvas-linux-x64-gnu@npm:0.1.19":
+  version: 0.1.19
+  resolution: "@napi-rs/canvas-linux-x64-gnu@npm:0.1.19"
+  conditions: os=linux & cpu=x64
+  languageName: node
+  linkType: hard
+
+"@napi-rs/canvas-linux-x64-musl@npm:0.1.19":
+  version: 0.1.19
+  resolution: "@napi-rs/canvas-linux-x64-musl@npm:0.1.19"
+  conditions: os=linux & cpu=x64
+  languageName: node
+  linkType: hard
+
+"@napi-rs/canvas-win32-x64-msvc@npm:0.1.19":
+  version: 0.1.19
+  resolution: "@napi-rs/canvas-win32-x64-msvc@npm:0.1.19"
+  conditions: os=win32 & cpu=x64
+  languageName: node
+  linkType: hard
+
+"@napi-rs/canvas@npm:^0.1.19":
+  version: 0.1.19
+  resolution: "@napi-rs/canvas@npm:0.1.19"
+  dependencies:
+    "@napi-rs/canvas-android-arm64": 0.1.19
+    "@napi-rs/canvas-darwin-arm64": 0.1.19
+    "@napi-rs/canvas-darwin-x64": 0.1.19
+    "@napi-rs/canvas-linux-arm-gnueabihf": 0.1.19
+    "@napi-rs/canvas-linux-arm64-gnu": 0.1.19
+    "@napi-rs/canvas-linux-arm64-musl": 0.1.19
+    "@napi-rs/canvas-linux-x64-gnu": 0.1.19
+    "@napi-rs/canvas-linux-x64-musl": 0.1.19
+    "@napi-rs/canvas-win32-x64-msvc": 0.1.19
+  dependenciesMeta:
+    "@napi-rs/canvas-android-arm64":
+      optional: true
+    "@napi-rs/canvas-darwin-arm64":
+      optional: true
+    "@napi-rs/canvas-darwin-x64":
+      optional: true
+    "@napi-rs/canvas-linux-arm-gnueabihf":
+      optional: true
+    "@napi-rs/canvas-linux-arm64-gnu":
+      optional: true
+    "@napi-rs/canvas-linux-arm64-musl":
+      optional: true
+    "@napi-rs/canvas-linux-x64-gnu":
+      optional: true
+    "@napi-rs/canvas-linux-x64-musl":
+      optional: true
+    "@napi-rs/canvas-win32-x64-msvc":
+      optional: true
+  checksum: 39fd50c54ea014eac3f5d0bf4ff69ad4f326d80743e3d6e736fe3e961c1e039a822cc4d2465b2eda9c8d7b4a1c638d6e0f78b05fc7fb42d9a9c373122af010e6
+  languageName: node
+  linkType: hard
+
 "@napi-rs/triples@npm:1.0.3":
   version: 1.0.3
   resolution: "@napi-rs/triples@npm:1.0.3"
@@ -2358,6 +2464,22 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@types/cli-progress@npm:^3.9.2":
+  version: 3.9.2
+  resolution: "@types/cli-progress@npm:3.9.2"
+  dependencies:
+    "@types/node": "*"
+  checksum: 371ecb29c45dce7127b4a8626521d908ce7dfaea6a537fcd491b12aea3a8ff58452eb1b33e0d2e0724c81b56df3930195e521e12fe979518deb5329a7a884a02
+  languageName: node
+  linkType: hard
+
+"@types/color-name@npm:^1.1.1":
+  version: 1.1.1
+  resolution: "@types/color-name@npm:1.1.1"
+  checksum: b71fcad728cc68abcba1d405742134410c8f8eb3c2ef18113b047afca158ad23a4f2c229bcf71a38f4a818dead375c45b20db121d0e69259c2d81e97a740daa6
+  languageName: node
+  linkType: hard
+
 "@types/concat-stream@npm:^1.6.0":
   version: 1.6.1
   resolution: "@types/concat-stream@npm:1.6.1"
@@ -2516,6 +2638,13 @@ __metadata:
   version: 0.7.31
   resolution: "@types/ms@npm:0.7.31"
   checksum: daadd354aedde024cce6f5aa873fefe7b71b22cd0e28632a69e8b677aeb48ae8caa1c60e5919bb781df040d116b01cb4316335167a3fc0ef6a63fa3614c0f6da
+  languageName: node
+  linkType: hard
+
+"@types/node-emoji@npm:^1.8.1":
+  version: 1.8.1
+  resolution: "@types/node-emoji@npm:1.8.1"
+  checksum: c6be9052dced686b93a7ee9f0b1401321df9f44281c0084f0c506d256016bc9093defcad68d9083f5179e292a8794cb710d64e72ab4fb529fab032002fe6d5b5
   languageName: node
   linkType: hard
 
@@ -5374,6 +5503,15 @@ __metadata:
   languageName: node
   linkType: hard
 
+"cli-progress@npm:^3.10.0":
+  version: 3.10.0
+  resolution: "cli-progress@npm:3.10.0"
+  dependencies:
+    string-width: ^4.2.0
+  checksum: 8e22c6265f95598002986c6508d05004bd9f5ee17c06f239d8d59e14f5a7e5605055f5d705a3a7d69f6072ea0752b1c094f28c48a704f9fd00378d7d16f0b46d
+  languageName: node
+  linkType: hard
+
 "cli-table3@npm:^0.5.0":
   version: 0.5.1
   resolution: "cli-table3@npm:0.5.1"
@@ -5493,7 +5631,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"color-name@npm:~1.1.4":
+"color-name@npm:^1.1.4, color-name@npm:~1.1.4":
   version: 1.1.4
   resolution: "color-name@npm:1.1.4"
   checksum: b0445859521eb4021cd0fb0cc1a75cecf67fceecae89b63f62b201cca8d345baf8b952c966862a9d9a2632987d4f6581f0ec8d957dfacece86f0a7919316f610
@@ -14608,7 +14746,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"node-emoji@npm:^1.10.0":
+"node-emoji@npm:^1.10.0, node-emoji@npm:^1.11.0":
   version: 1.11.0
   resolution: "node-emoji@npm:1.11.0"
   dependencies:

@@ -9,6 +9,7 @@ import migration3 from "./3.js";
 const migrations = [migration0, migration1, migration2, migration3];
 
 export default async function (db: Database, desiredMigration: number) {
+  desiredMigration = desiredMigration || migrations.length - 1;
   // Always run 0 migration to create migrations table
   await migration0.up(db);
 

@@ -3,14 +3,13 @@ import { resolve } from "path";
 import { interval, merge, concatMap, takeLast, from, map, tap } from "rxjs";
 import { CID, IPFSHTTPClient } from "ipfs-http-client";
 import { createLink, createNode } from "@ipld/dag-pb";
-import { networks } from "@creaturenft/contracts";
+import { getContractOwner } from "@creaturenft/contracts";
 import { assetPath } from "@creaturenft/assets";
 import type { Database } from "sqlite3";
 import {
   defaultProvider,
   creatureErc721Factory,
   lifecycleManagerFactory,
-  findContractOwnerAddress,
   Network,
 } from "@creaturenft/web3";
 
@@ -46,12 +45,8 @@ function lifecycleManagerOwnerAddress(
   if (process.env.LIFECYCLE_MANAGER_OWNER_ADDRESS) {
     return process.env.LIFECYCLE_MANAGER_OWNER_ADDRESS;
   }
-  const contractAddress = findContractOwnerAddress(
-    networks,
-    network.chainId.toString(),
-    networkName,
-    "LifecycleManager"
-  );
+  const contractAddress = getContractOwner(networkName, "LifecycleManager");
+
   if (!contractAddress) {
     throw new Error(`No contract address found for network ${networkName}`);
   }

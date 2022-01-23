@@ -38,7 +38,10 @@ export function cachedTokenIsMinted(contract: CreatureERC721) {
   const topTokenSubject = new ReplaySubject<BigNumber>(1);
   contract.on("Transfer", (from: string, to: string, tokenId: BigNumber) => {
     console.log("Transfer event:", from, to, tokenId.toNumber());
-    topTokenSubject.next(tokenId);
+    // Only care about minting events
+    if (from === "0x0000000000000000000000000000000000000000") {
+      topTokenSubject.next(tokenId);
+    }
   });
 
   function topTokenObservable() {

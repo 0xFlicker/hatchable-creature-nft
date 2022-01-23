@@ -72,24 +72,3 @@ export function findContractAddress(
   }
   return contract.address;
 }
-
-export function findContractOwnerAddress(
-  deploymentData: any,
-  chainId: string,
-  networkName: string,
-  contractName: string
-): string | null {
-  const contract = findContract(
-    deploymentData,
-    chainId,
-    networkName,
-    contractName
-  );
-  const {
-    receipt: { from },
-  } = contract;
-  if (!from) {
-    return null;
-  }
-  return from;
-}

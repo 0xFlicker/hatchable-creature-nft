@@ -2,7 +2,6 @@ import defaultProvider from "./providers/default.js";
 import fallbackProvider from "./providers/fallback.js";
 export {
   findContractAddress,
-  findContractOwnerAddress,
   networkStringToNetworkType,
 } from "./networks.js";
 export type { Network } from "./networks.js";

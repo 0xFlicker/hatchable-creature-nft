@@ -9,9 +9,10 @@
   "scripts": {
     "build": "tsc",
     "compile": "hardhat compile",
-    "deploy:localhost": "hardhat deploy --network localhost --export-all deployments/networks.json",
+    "deploy:localhost": "ETH_NODE_URI_LOCALHOST=http://localhost:8545 hardhat deploy --network localhost --export-all deployments/networks.json",
     "deploy:ganache": "hardhat deploy --network ganache --export-all deployments/networks.json",
     "deploy:hardhat": "hardhat deploy --network hardhat-node --export-all deployments/networks.json",
+    "start:dev": "hardhat node --network hardhat",
     "test": "hardhat test",
     "fund": "hardhat fund"
   },
