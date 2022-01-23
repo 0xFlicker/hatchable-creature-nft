@@ -1,5 +1,8 @@
 # asset-generator
 
-Put your image generator here.
+To generate and prime IPFS with test NFTs
 
-See `src/copy-assets.ts` for expected image and metadata inputs. Alternatively, extend that file to generate your own assets.
+```
+yarn assets:test
+yarn assets:upload
+```

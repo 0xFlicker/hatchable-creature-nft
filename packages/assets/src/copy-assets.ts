@@ -5,9 +5,7 @@ import { assetPath } from "./index.js";
 import type { IMetadata } from "@creaturenft/web3";
 import { fileURLToPath } from "url";
 import { clientFactory as createClient } from "@creaturenft/ipfs";
-import type { CID, IPFSHTTPClient } from "ipfs-http-client";
-import { createNode, createLink, decode, encode } from "@ipld/dag-pb";
-import { AddResult } from "ipfs-core-types/src/root";
+import type { IPFSHTTPClient } from "ipfs-http-client";
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 
@@ -58,7 +56,7 @@ async function main() {
   const generatedPath = resolve(assetPath, "generated");
   const generatedImagePath = resolve(generatedPath, "images");
   const generatedMetadataPath = resolve(generatedPath, "metadata");
-  const eggImagePath = resolve(assetPath, "assets", "egg.png");
+  const eggImagePath = resolve(assetPath, "generated", "egg.png");
   console.log(`localAssetsPath: ${localAssetsPath}`);
   const eggResults = await addViaIpfsClient(
     ipfsClient,
@@ -116,35 +114,6 @@ async function main() {
     );
   }
   const babyBaseResult = await ipfsClient.files.stat(metadataIpfsBasePath);
-  const parent = await ipfsClient.block.get(babyBaseResult.cid);
-  // Decode parent block
-  const parentBlock = decode(parent);
-  // parentBlock.Links = parentBlock.Links.filter(({ Name }) => Name === "1");
-  // lookup cid of metadata named 1
-  const metadataToRemoveCid = parentBlock.Links.find(
-    ({ Name }) => Name === "1"
-  );
-  if (metadataToRemoveCid) {
-    // const index = 1;
-    // const metadataFilePath = resolve(generatedMetadataPath, index.toString());
-    // await ipfsClient.files.write(
-    //   `${metadataIpfsBasePath}/${index}`,
-    //   await fs.promises.readFile(metadataFilePath, "utf8")
-    // );
-    // const newCid = await ipfsClient.files.stat(metadataIpfsBasePath);
-    // const metadataResult = await ipfsClient.add({
-    //   content: await fs.promises.readFile(metadataFilePath, "utf8"),
-    // });
-    // const rmMetadataCid = await ipfsClient.object.patch.rmLink(
-    //   babyBaseResult.cid,
-    //   metadataToRemoveCid
-    // );
-    // await ipfsClient.files.write(
-    //   `/${metadataIpfsBasePath}/1`,
-    //   await fs.promises.readFile(metadataFilePath, "utf8")
-    // );
-    // console.log(newCid);
-  }
 
   // TODO: move these things into a shared IPFS location or save to a DB rather than using local FS
   await fs.promises.mkdir(localAssetsPath, { recursive: true });
