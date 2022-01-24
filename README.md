@@ -7,7 +7,7 @@
 
 The current trend in NFTs is to have an NFT that remains "hidden" during a set period of time. This is usually accomplished by the owner of the contract setting the original minting to point to a dummy metadata/images that is revealed at a later date by resetting the baseURI for the entire token contract. This only requires a single contract call my the owner and can be done entirely on IPFS.
 
-This implementation is far more complicated.
+This implementation replaces manual reveals with automated batched timed reveals. Metadata remains hidden and is revealed after minting automatically with no participation from NFT artist. This is ideal for long running or high token count mints.
 
 ## How do we make this really complicated?
 
