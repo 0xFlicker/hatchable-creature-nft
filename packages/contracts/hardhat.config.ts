@@ -4,6 +4,7 @@ import { HardhatUserConfig, task, types } from "hardhat/config";
 import "hardhat-deploy";
 import "@nomiclabs/hardhat-etherscan";
 import "@nomiclabs/hardhat-waffle";
+import "hardhat-deploy-ethers";
 import "@typechain/hardhat";
 import "hardhat-gas-reporter";
 import "solidity-coverage";
@@ -69,7 +70,15 @@ task("mint", "Mints a token for a given account")
 // Go to https://hardhat.org/config/ to learn more
 
 const config: HardhatUserConfig = {
-  solidity: "0.8.4",
+  solidity: {
+    version: "0.8.4",
+    settings: {
+      optimizer: {
+        enabled: true,
+        runs: 10,
+      },
+    },
+  },
   defaultNetwork: "hardhat",
   namedAccounts: {
     owner: 0,
@@ -124,13 +133,23 @@ const config: HardhatUserConfig = {
       url: node_url("goerli"),
       accounts: accounts("goerli"),
     },
+    maticmum: {
+      url: node_url("maticmum"),
+      accounts: accounts("maticmum"),
+    },
   }),
   gasReporter: {
     enabled: process.env.REPORT_GAS !== undefined,
     currency: "USD",
   },
   etherscan: {
-    apiKey: process.env.ETHERSCAN_API_KEY,
+    // @ts-ignore this is for the verifier
+    apiKey: {
+      mainnet: process.env.ETHERSCAN_API_KEY_MAINNET,
+      goerli: process.env.ETHERSCAN_API_KEY_GOERLI,
+      polygonMumbai: process.env.ETHERSCAN_API_KEY_MATICMUM,
+      polygon: process.env.ETHERSCAN_API_KEY_MATIC,
+    },
   },
   typechain: {
     outDir: "typechain",
