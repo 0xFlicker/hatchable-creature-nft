@@ -1,4 +1,5 @@
 import { IPFSHTTPClient } from "ipfs-http-client";
+import { TextDecoder } from "util";
 
 export async function loadUtf8Content(
   ipfsClient: IPFSHTTPClient,

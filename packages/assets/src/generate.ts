@@ -16,8 +16,6 @@ GlobalFonts.registerFromPath(
 const canvas = createCanvas(512, 512);
 const ctx = canvas.getContext("2d");
 
-//
-
 /*
  * Generate test NFTs from emojis. These are only used for demonstrative purposes and should only be used for testing purposes.
  * The license of the emojis does not allow derivative for-profit use of the emojis.

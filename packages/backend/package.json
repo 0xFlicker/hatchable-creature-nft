@@ -9,7 +9,7 @@
   "private": true,
   "scripts": {
     "build": "tsc --build",
-    "start:dev": "concurrently --kill-others -i \"NETWORK=localhost nodemon --inspect --enable-source-maps  --experimental-json-modules -w dist -w ../../node_modules/@creaturenft/shared/dist -w ../../node_modules/@creaturenft/web3/dist -w .env dist/index.js\" \"yarn build --watch --preserveWatchOutput\""
+    "start:dev": "concurrently --kill-others -i \"NETWORK=localhost nodemon --inspect --enable-source-maps  --experimental-json-modules -w dist  -w ../../node_modules/@creaturenft/web3/dist -w .env dist/index.js\" \"yarn build --watch --preserveWatchOutput\""
   },
   "dependencies": {
     "cross-env": "^7.0.3",

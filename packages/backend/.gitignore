@@ -1,2 +1,4 @@
 .env
 assets
+src/all_metadata_cids.json
+src/metadataBasePath.json

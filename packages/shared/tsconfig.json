@@ -19,7 +19,11 @@
     "outDir": "./dist",
     "rootDir": "./src"
   },
-  "include": ["src/**/*.ts", "src/**/*.json"],
+  "include": [
+    "src/**/*.ts",
+    "src/**/*.json",
+    "../backend/src/ipfs/metadata.ts"
+  ],
   "exclude": ["node_modules"],
   "references": [
     {

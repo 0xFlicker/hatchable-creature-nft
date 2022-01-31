@@ -1,7 +1,9 @@
 import express from "express";
 import { networkStringToNetworkType } from "@creaturenft/web3";
-import { createDb, hatcherResolver, runMigrations } from "@creaturenft/shared";
+import createDb from "./db.js";
+import runMigrations from "./migrations/index.js";
 import createIpfsClient from "./ipfs/client.js";
+import hatcherResolver from "./hatcher.js";
 const app = express();
 
 function envToCurrentMigration() {
