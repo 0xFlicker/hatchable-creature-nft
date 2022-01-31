@@ -39,7 +39,6 @@ contract ChildCreatureERC721 is
   bytes32 public constant ROLE_REVEALER = keccak256("ROLE_REVEALER");
 
   event WithdrawnBatch(address indexed user, uint256[] tokenIds);
-
   event TransferWithMetadata(
     address indexed from,
     address indexed to,
@@ -114,6 +113,7 @@ contract ChildCreatureERC721 is
     onlyRole(ROLE_REVEALER)
   {
     m_baseURI = _baseURIBytes;
+    emit BaseURIUpdated(_baseURIBytes);
   }
 
   function setPreApprovedProxy(address _preApprovedProxyAddress)
@@ -133,7 +133,6 @@ contract ChildCreatureERC721 is
     returns (bool isOperator)
   {
     // if OpenSea's ERC721 Proxy Address is detected, auto-return true
-    // polygon mainnet: address(0x58807baD0B376efc12F5AD86aAc70E78ed67deaE)
     if (_operator == m_preApprovedProxyAddress) {
       return true;
     }

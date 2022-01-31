@@ -7,8 +7,9 @@
   "license": "MIT",
   "private": true,
   "scripts": {
-    "dev": "next dev",
-    "build": "next build",
+    "copy:deployments": "rm -rf deployments; mkdir -p deployments; cp -r ../contracts/deployments/* ./deployments/",
+    "dev": "yarn copy:deployments && next dev",
+    "build": "yarn copy:deployments && next build",
     "start": "next start",
     "lint": "next lint"
   },

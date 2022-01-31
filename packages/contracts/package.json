@@ -7,12 +7,13 @@
   "license": "MIT",
   "private": true,
   "scripts": {
-    "build": "tsc --build && yarn copy:deployments",
+    "build": "tsc --build",
     "compile": "[ ! -e \"deployments/networks.json\" ] && mkdir -p deployments && echo \"{}\" > deployments/networks.json; hardhat compile",
-    "deploy:localhost": "ETH_NODE_URI_LOCALHOST=http://localhost:8545 hardhat deploy --network localhost --export-all deployments/networks.json",
-    "mint:localhost": "ETH_NODE_URI_LOCALHOST=http://localhost:8545 hardhat mint --network localhost --cost 1",
+    "deploy:localhost": "hardhat deploy --network localhost --export-all deployments/networks.json",
+    "mint:localhost": "hardhat mint --network localhost --cost 1",
     "deploy:hardhat": "hardhat deploy --network hardhat --export-all deployments/networks.json",
     "deploy:maticmum": "hardhat deploy --network maticmum --export-all deployments/networks.json",
+    "deploy:goerli": "hardhat deploy --network goerli --export-all deployments/networks.json",
     "start:dev": "hardhat node --network hardhat  --export-all deployments/networks.json",
     "test": "hardhat test",
     "fund": "hardhat fund"

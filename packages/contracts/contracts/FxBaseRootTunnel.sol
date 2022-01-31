@@ -41,7 +41,7 @@ abstract contract FxBaseRootTunnel is AccessControl {
     0x8c5261668696ce22758910d05bab8f186d6eb247ceac2af2e82c7dc17669b036;
 
   // state sender contract
-  IFxStateSender public fxRoot;
+  // IFxStateSender public fxRoot;
   // root chain manager
   ICheckpointManager public checkpointManager;
   // child tunnel contract which receives and sends messages
@@ -51,11 +51,9 @@ abstract contract FxBaseRootTunnel is AccessControl {
   mapping(bytes32 => bool) public processedExits;
 
   bytes32 public constant ROLE_ADMIN = keccak256("ROLE_ADMIN");
-  bytes32 public constant ROLE_ROOT_TUNNEL = keccak256("ROLE_ROOT_TUNNEL");
 
   constructor() {
     _grantRole(ROLE_ADMIN, _msgSender());
-    _setRoleAdmin(ROLE_ROOT_TUNNEL, ROLE_ADMIN);
   }
 
   function setCheckpointManager(address _checkpointManager)
@@ -66,13 +64,14 @@ abstract contract FxBaseRootTunnel is AccessControl {
     checkpointManager = ICheckpointManager(_checkpointManager);
   }
 
-  function setFxStateSender(address _fxChildTunnel)
-    public
-    virtual
-    onlyRole(ROLE_ADMIN)
-  {
-    fxRoot = IFxStateSender(_fxChildTunnel);
-  }
+  // No plans to enable sending to child tunnel
+  // function setFxStateSender(address _fxChildTunnel)
+  //   public
+  //   virtual
+  //   onlyRole(ROLE_ADMIN)
+  // {
+  //   fxRoot = IFxStateSender(_fxChildTunnel);
+  // }
 
   // set fxChildTunnel if not set already
   function setFxChildTunnel(address _fxChildTunnel)
@@ -83,17 +82,17 @@ abstract contract FxBaseRootTunnel is AccessControl {
     fxChildTunnel = _fxChildTunnel;
   }
 
-  /**
-   * @notice Send bytes message to Child Tunnel
-   * @param message bytes message that will be sent to Child Tunnel
-   * some message examples -
-   *   abi.encode(tokenId);
-   *   abi.encode(tokenId, tokenMetadata);
-   *   abi.encode(messageType, messageData);
-   */
-  function _sendMessageToChild(bytes memory message) internal {
-    fxRoot.sendMessageToChild(fxChildTunnel, message);
-  }
+  // /**
+  //  * @notice Send bytes message to Child Tunnel
+  //  * @param message bytes message that will be sent to Child Tunnel
+  //  * some message examples -
+  //  *   abi.encode(tokenId);
+  //  *   abi.encode(tokenId, tokenMetadata);
+  //  *   abi.encode(messageType, messageData);
+  //  */
+  // function _sendMessageToChild(bytes memory message) internal {
+  //   fxRoot.sendMessageToChild(fxChildTunnel, message);
+  // }
 
   function _validateAndExtractMessage(bytes memory inputData)
     internal

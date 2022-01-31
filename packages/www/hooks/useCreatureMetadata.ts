@@ -82,14 +82,12 @@ export default function useCreatureMetadata(tokenId?: number) {
     if (!contract || typeof tokenId !== "number") {
       return;
     }
-    const hatchedHandler = (_tokenId: any) => {
-      if (_tokenId.eq(tokenId)) {
-        setHatched(true);
-      }
+    const hatchedHandler = () => {
+      setLoaded(false);
     };
-    contract.on("Hatched", hatchedHandler);
+    contract.on("BaseURIUpdated", hatchedHandler);
     return () => {
-      contract.removeListener("Hatched", hatchedHandler);
+      contract.removeListener("BaseURIUpdated", hatchedHandler);
     };
   }, [tokenId, contract]);
 
