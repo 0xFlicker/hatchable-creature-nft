@@ -14,6 +14,9 @@ export default function useCreatureMetadata(tokenId?: number) {
 
   const [metadata, setMetadata] = useState<IMetadata | null>(null);
   useEffect(() => {
+    if (loaded) {
+      return;
+    }
     const abortController = new AbortController();
     async function fetchMetadata() {
       if (!contract || typeof tokenId !== "number" || !exists) {
@@ -33,10 +36,11 @@ export default function useCreatureMetadata(tokenId?: number) {
         return;
       }
       setMetadata(JSON.parse(metadataContent));
+      setLoaded(true);
     }
     fetchMetadata();
     return () => abortController.abort();
-  }, [tokenId, contract, exists, hatched]);
+  }, [tokenId, contract, exists, loaded]);
 
   useEffect(() => {
     async function fetchCreatureCount() {
@@ -46,12 +50,10 @@ export default function useCreatureMetadata(tokenId?: number) {
       try {
         const count = await contract.tokenCount();
         setExists(count.gte(tokenId));
-        setLoaded(true);
       } catch (err) {
         console.error(err);
         // Probably doesn't exist
         setExists(false);
-        setLoaded(true);
       }
     }
     fetchCreatureCount();
