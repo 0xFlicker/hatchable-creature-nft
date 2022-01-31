@@ -10,15 +10,15 @@ import {
 } from "react";
 import { networks } from "@creaturenft/contracts";
 import {
-  CreatureERC721,
-  CreatureERC721__factory,
+  ChildCreatureERC721,
+  ChildCreatureERC721__factory,
 } from "@creaturenft/contracts/typechain";
 import { findContractAddress } from "@creaturenft/web3";
 
 import config from "../utils/config";
 
 interface IContext {
-  contract?: CreatureERC721;
+  contract?: ChildCreatureERC721;
   provider?: ethers.providers.Web3Provider;
   accounts?: string[];
   connect?: () => void;
@@ -29,7 +29,7 @@ const ContractContext = createContext<IContext>({});
 function useCreatureERC721(context: IContext = {}) {
   const [provider, setProvider] = useState<ethers.providers.Web3Provider>();
   const [accounts, setAccounts] = useState<string[]>();
-  const [creatureERC721, setCreatureERC721] = useState<CreatureERC721>();
+  const [creatureERC721, setCreatureERC721] = useState<ChildCreatureERC721>();
   useEffect(() => {
     if (context.provider) {
       setProvider(context.provider);
@@ -64,7 +64,7 @@ function useCreatureERC721(context: IContext = {}) {
       "CreatureERC721"
     );
     if (contractAddress) {
-      const contract = CreatureERC721__factory.connect(
+      const contract = ChildCreatureERC721__factory.connect(
         contractAddress,
         provider.getSigner(accounts[0])
       );
@@ -77,7 +77,7 @@ function useCreatureERC721(context: IContext = {}) {
       networks,
       config.chainId,
       config.network,
-      "CreatureERC721"
+      "ChildCreatureERC721"
     );
     if (contractAddress) {
       if (!window.ethereum?.request) {
@@ -85,7 +85,7 @@ function useCreatureERC721(context: IContext = {}) {
         return;
       }
       const provider = new ethers.providers.Web3Provider(window.ethereum);
-      const contract = CreatureERC721__factory.connect(
+      const contract = ChildCreatureERC721__factory.connect(
         contractAddress,
         provider
       );

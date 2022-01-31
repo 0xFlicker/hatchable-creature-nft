@@ -33,5 +33,5 @@ export async function updateBaseUriToTokenCount(
     await ipfsClient.files.write(path, content);
   }
   const statResult = await ipfsClient.files.stat(metadataIpfsBasePath);
-  return `ipfs://${statResult.cid.toString()}/`;
+  return statResult.cid.toString();
 }

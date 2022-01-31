@@ -41,7 +41,7 @@ export function findContract(
     return null;
   }
 
-  networkName = networkName === "unknown" ? "ganache" : networkName;
+  networkName = networkName === "unknown" ? "localhost" : networkName;
   const {
     [networkName]: { contracts },
   } = networks;

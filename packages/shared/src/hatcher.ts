@@ -8,12 +8,11 @@ import { assetPath } from "@creaturenft/assets";
 import type { Database } from "sqlite3";
 import {
   defaultProvider,
-  creatureErc721Factory,
-  lifecycleManagerFactory,
+  childCreatureErc721Factory,
   Network,
 } from "@creaturenft/web3";
 
-import { providers, BigNumber } from "ethers";
+import { providers, BigNumber, utils } from "ethers";
 import {
   getAdultCreatureMetadata,
   ICreatureModel,
@@ -23,24 +22,37 @@ import {
   removeCreaturesFromDatabase,
   saveCreatureToDatabase,
 } from "./models/creature.js";
-import {
-  CreatureERC721,
-  LifecycleManager,
-} from "@creaturenft/contracts/typechain";
+import { ChildCreatureERC721 } from "@creaturenft/contracts/typechain";
 import {
   addPendingUpdateTransaction,
   getPendingUpdateTransactions,
   IUpdateBaseUri,
   removePendingUpdateTransaction,
-  saveUpdateBaseUri,
 } from "./models/updateBaseUri.js";
 import { updateBaseUriToTokenCount } from "./ipfs/metadata.js";
+import { childCreatureErc721ContractFactory } from "@creaturenft/web3/src/contracts/childCreatureErc721";
 
 const CONFIRMING_BLOCKS = 3;
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 
-function getContractOwner(network: string, contractName: string) {
+function childCreatureERC721OwnerAddress(networkName: string) {
+  if (process.env.CHILD_CREATURE_ERC721_OWNER_ADDRESS) {
+    return process.env.CHILD_CREATURE_ERC721_OWNER_ADDRESS;
+  }
+  networkName =
+    networkName !== "unknown"
+      ? networkName
+      : process.env.NETWORK || "localhost";
+  const contractAddress = getContractOwner(networkName, "ChildCreatureERC721");
+
+  if (!contractAddress) {
+    throw new Error(`No contract address found for network ${networkName}`);
+  }
+  return contractAddress;
+}
+
+function getContractOwner(networkName: string, contractName: string) {
   // FIXME: no code safety here, this will blow up if anything is missing
   const contractJson = JSON.parse(
     fs.readFileSync(
@@ -49,7 +61,7 @@ function getContractOwner(network: string, contractName: string) {
         "..",
         "..",
         "contracts",
-        `./deployments/${network}/${contractName}.json`
+        `./deployments/${networkName}/${contractName}.json`
       ),
       "utf8"
     )
@@ -57,64 +69,15 @@ function getContractOwner(network: string, contractName: string) {
   return contractJson.receipt.from;
 }
 
-function lifecycleManagerOwnerAddress(
-  network: providers.Network,
-  networkName: string
-) {
-  if (process.env.LIFECYCLE_MANAGER_OWNER_ADDRESS) {
-    return process.env.LIFECYCLE_MANAGER_OWNER_ADDRESS;
-  }
-  const contractAddress = getContractOwner(networkName, "LifecycleManager");
-
-  if (!contractAddress) {
-    throw new Error(`No contract address found for network ${networkName}`);
-  }
-  return contractAddress;
-}
-
-async function updateIpfsWithNewCreatures(
-  ipfsClient: IPFSHTTPClient,
-  creatures: ICreatureModel[],
-  rootCid: CID,
-  abortController?: AbortController
-) {
-  // ipfsClient.object.patch.addLink(rootCid,
-  const assetsPackageAdultMetadata = resolve(
-    assetPath,
-    "generated",
-    "metadata"
-  );
-  let cid: CID = rootCid;
-  for (const creature of creatures) {
-    const tokenId = creature.tokenId.toString();
-    const creatureCid = await ipfsClient.add({
-      content: await fs.promises.readFile(
-        resolve(assetsPackageAdultMetadata, tokenId),
-        "utf8"
-      ),
-    });
-    const link = createLink(
-      `$/{creatureCid.path}`,
-      creatureCid.size,
-      creatureCid.cid
-    );
-
-    cid = await ipfsClient.object.patch.addLink(cid, link, {
-      signal: abortController?.signal,
-    });
-  }
-}
-
 export async function resolver(
-  creatureContract: CreatureERC721,
-  lifecycleManagerContract: LifecycleManager,
+  childCreatureContract: ChildCreatureERC721,
   ipfsClient: IPFSHTTPClient,
   provider: providers.Provider,
   db: Database
 ): Promise<void> {
   console.log("Resolving creatures...");
   // check if any minted tokens exist that need to hatch
-  const tokenCount = await creatureContract.tokenCount();
+  const tokenCount = await childCreatureContract.tokenCount();
 
   // Check for tokens that don't actually exist and need to be removed
   const creaturesToRemove: BigNumber[] = [];
@@ -125,7 +88,7 @@ export async function resolver(
 
   // Iterate over all tokens and check if they are minted and waiting to hatch
   const [creatures, cancel] = await iterateAllCreatures(db);
-  let lastKnownTokenId = await lifecycleManagerContract.lastTokenIdUpdated();
+  let lastKnownTokenId = BigNumber.from(0);
   for await (const creature of creatures) {
     if (tokenCount.lt(creature.tokenId)) {
       console.info(
@@ -204,10 +167,10 @@ export async function resolver(
       lastKnownTokenId.toNumber(),
       tokenCount.toNumber()
     );
-    const pendingTx = await lifecycleManagerContract.updateMetadata(
-      newBaseCid,
-      tokenCount
+    const pendingTx = await childCreatureContract.setBaseURI(
+      utils.base58.decode(newBaseCid)
     );
+
     await addPendingUpdateTransaction(
       db,
       tokenCount,
@@ -252,17 +215,10 @@ export default async function (
   // await provider.send("evm_setIntervalMining", [1000]);
   const networkProvider = await provider.getNetwork();
 
-  const ownerAddress = lifecycleManagerOwnerAddress(networkProvider, network);
-  const signer = provider.getSigner(ownerAddress);
+  const ownerAddress = childCreatureERC721OwnerAddress(networkProvider.name);
 
-  const { topToken$, contract: creatureContract } = await creatureErc721Factory(
-    network
-  );
-  const lifecycleManager = lifecycleManagerFactory(
-    signer,
-    networkProvider,
-    network
-  );
+  const { topToken$, contract: creatureContract } =
+    await childCreatureErc721Factory(network);
 
   // Start the resolver
   console.log("Starting resolver...");
@@ -270,7 +226,12 @@ export default async function (
     .pipe(
       concatMap(() =>
         from(
-          resolver(creatureContract, lifecycleManager, ipfsClient, provider, db)
+          resolver(
+            creatureContract.connect(provider.getSigner(ownerAddress)),
+            ipfsClient,
+            provider,
+            db
+          )
         )
       )
     )

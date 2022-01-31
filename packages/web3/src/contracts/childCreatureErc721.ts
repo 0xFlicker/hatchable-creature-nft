@@ -1,8 +1,6 @@
 import { BigNumber, providers } from "ethers";
 import {
   ReplaySubject,
-  distinctUntilChanged,
-  last,
   isEmpty,
   firstValueFrom,
   iif,
@@ -14,12 +12,12 @@ import {
 import { Network } from "../networks";
 import fallbackProvider from "../providers/fallback.js";
 import {
-  CreatureERC721,
-  CreatureERC721__factory,
+  ChildCreatureERC721,
+  ChildCreatureERC721__factory,
 } from "@creaturenft/contracts";
 import contractFactory from "../utils/contract.js";
 
-export async function creatureErc721ContractFactory(
+export async function childCreatureErc721ContractFactory(
   provider: providers.Provider,
   networkName: Network
 ) {
@@ -28,12 +26,12 @@ export async function creatureErc721ContractFactory(
     provider,
     network,
     networkName,
-    "CreatureERC721",
-    CreatureERC721__factory.connect
+    "ChildCreatureERC721",
+    ChildCreatureERC721__factory.connect
   );
 }
 
-export function cachedTokenIsMinted(contract: CreatureERC721) {
+export function cachedTokenIsMinted(contract: ChildCreatureERC721) {
   const topTokenSubject = new ReplaySubject<BigNumber>(1);
   contract.on("Transfer", (from: string, to: string, tokenId: BigNumber) => {
     console.log("Transfer event:", from, to, tokenId.toNumber());
@@ -45,13 +43,6 @@ export function cachedTokenIsMinted(contract: CreatureERC721) {
 
   function topTokenObservable() {
     return topTokenSubject.asObservable();
-    // Probably not needed
-    // .pipe(
-    //   // Take latest if it is larger than the current value
-    //   distinctUntilChanged((a, b) => a.lt(b)),
-    //   // Take the last value
-    //   last()
-    // );
   }
   const topToken$ = topTokenObservable();
   const tokenChecker = async (tokenId: BigNumber) => {
@@ -74,7 +65,7 @@ export function cachedTokenIsMinted(contract: CreatureERC721) {
 
 export default async function (network: Network) {
   const provider = fallbackProvider(network, true);
-  const contract = await creatureErc721ContractFactory(provider, network);
+  const contract = await childCreatureErc721ContractFactory(provider, network);
   return {
     ...cachedTokenIsMinted(contract),
     contract,
