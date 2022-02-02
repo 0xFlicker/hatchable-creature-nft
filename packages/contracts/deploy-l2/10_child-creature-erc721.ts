@@ -20,9 +20,10 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
   const { owner } = await getNamedAccounts();
 
   const networkName = network.name as "matic" | "maticmum";
-
+  const childContractArgs = [childManagerProxy[networkName]];
   const childContractResult = await deploy("ChildCreatureERC721", {
     from: owner,
+    args: childContractArgs,
   });
 
   const ownerSigner = await ethers.getSigner(owner);
@@ -42,15 +43,9 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
       fxStateTransferChild[networkName]
     );
   }
-  if (childManagerProxy[networkName]) {
-    await childContract.grantRole(
-      await childContract.ROLE_DEPOSITOR(),
-      childManagerProxy[networkName]
-    );
-  }
   await run("verify:verify", {
     address: childContract.address,
-    constructorArguments: [],
+    constructorArguments: childContractArgs,
   });
 };
 export default func;

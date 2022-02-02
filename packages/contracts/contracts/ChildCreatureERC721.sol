@@ -46,11 +46,12 @@ contract ChildCreatureERC721 is
     bytes metaData
   );
 
-  constructor() ERC721("Creature", "CRNFT") {
+  constructor(address childManager) ERC721("Creature", "CRNFT") {
     m_isWhitelisteSaleOpen = false;
     m_isPublicSaleOpen = false;
     _grantRole(DEFAULT_ADMIN_ROLE, _msgSender());
     _setRoleAdmin(ROLE_WHITELIST, ROLE_ADMIN);
+    _grantRole(ROLE_DEPOSITOR, childManager);
   }
 
   function supportsInterface(bytes4 interfaceId)

@@ -1,11 +1,13 @@
 import { ethers } from "hardhat";
 import { expect } from "chai";
-import { SignerWithAddress } from "@nomiclabs/hardhat-ethers/signers";
+import { SignerWithAddress } from "hardhat-deploy-ethers/signers";
 import { ChildCreatureERC721__factory } from "../typechain";
 
 async function createChildContract(signer: SignerWithAddress) {
   const factory = new ChildCreatureERC721__factory(signer);
-  const contract = await factory.deploy();
+  const contract = await factory.deploy(
+    "0x0000000000000000000000000000000000000000"
+  );
   return await contract.deployed();
 }
 
@@ -19,7 +21,7 @@ function randomIpfsHash() {
 describe("Update baseURI", function () {
   let accounts: SignerWithAddress[];
   this.beforeAll(async () => {
-    accounts = await ethers.getSigners();
+    accounts = (await ethers.getSigners()) as any;
   });
 
   it("can hatch", async () => {

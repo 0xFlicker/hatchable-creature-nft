@@ -1,14 +1,8 @@
 import { HardhatRuntimeEnvironment } from "hardhat/types";
 import { DeployFunction } from "hardhat-deploy/types";
-import { parseUnits } from "ethers/lib/utils";
 import { ParentCreatureERC721__factory } from "../typechain";
-import babyMetadataCid from "../utils/baby_metadata.json";
-import { isLocalNetwork } from "../utils/network";
 import {
-  childManagerProxy,
   fxStateCheckpointManager,
-  fxStateTransferChild,
-  fxStateTransferRoot,
   mintableErc721Proxy,
   preApprovedProxyAddress,
 } from "../utils/contracts";
@@ -25,9 +19,13 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
   const { owner } = await getNamedAccounts();
 
   const networkName = network.name as "goerli" | "mainnet";
-
+  const parentContractArgs = [
+    mintableErc721Proxy[networkName],
+    fxStateCheckpointManager[networkName],
+  ];
   const parentContractResult = await deploy("ParentCreatureERC721", {
     from: owner,
+    args: parentContractArgs,
   });
   const ownerSigner = await ethers.getSigner(owner);
   const parentContractFactory = new ParentCreatureERC721__factory();
@@ -39,21 +37,10 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
       preApprovedProxyAddress[networkName]
     );
   }
-  if (fxStateCheckpointManager[networkName]) {
-    await parentContract.setCheckpointManager(
-      fxStateCheckpointManager[networkName]
-    );
-  }
-  if (mintableErc721Proxy[networkName]) {
-    await parentContract.grantRole(
-      await parentContract.ROLE_PREDICATE(),
-      mintableErc721Proxy[networkName]
-    );
-  }
 
   await run("verify:verify", {
     address: parentContract.address,
-    constructorArguments: [],
+    constructorArguments: parentContractArgs,
   });
 };
 export default func;

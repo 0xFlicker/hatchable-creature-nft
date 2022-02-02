@@ -1,13 +1,14 @@
 import { ethers } from "hardhat";
 import { expect } from "chai";
-import { SignerWithAddress } from "@nomiclabs/hardhat-ethers/signers";
-import { BigNumberish } from "@ethersproject/bignumber";
+import { SignerWithAddress } from "hardhat-deploy-ethers/signers";
 import { ChildCreatureERC721__factory } from "../typechain";
 
 async function basicContract(signer: SignerWithAddress) {
   const factory = new ChildCreatureERC721__factory(signer);
-  const greeter = await factory.deploy();
-  return await greeter.deployed();
+  const contract = await factory.deploy(
+    "0x0000000000000000000000000000000000000000"
+  );
+  return await contract.deployed();
 }
 
 /*
@@ -18,7 +19,7 @@ async function basicContract(signer: SignerWithAddress) {
 describe("CreatureERC721", function () {
   let accounts: SignerWithAddress[];
   this.beforeAll(async () => {
-    accounts = await ethers.getSigners();
+    accounts = (await ethers.getSigners()) as any;
   });
 
   it("perfectly normal mint pays owner", async () => {

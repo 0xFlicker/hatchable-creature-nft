@@ -33,9 +33,13 @@ contract ParentCreatureERC721 is
 
   event WithdrawnBatch(address indexed user, uint256[] tokenIds);
 
-  constructor() ERC721("Creature", "CRNFT") {
+  constructor(address mintablePredicate, address checkpointManager)
+    ERC721("Creature", "CRNFT")
+  {
     _grantRole(DEFAULT_ADMIN_ROLE, _msgSender());
     _grantRole(ROLE_ADMIN, _msgSender());
+    _grantRole(ROLE_PREDICATE, mintablePredicate);
+    setCheckpointManager(checkpointManager);
   }
 
   function supportsInterface(bytes4 interfaceId)
