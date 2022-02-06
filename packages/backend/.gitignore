@@ -1,4 +1,7 @@
 .env
 assets
+cache
 src/all_metadata_cids.json
 src/metadataBasePath.json
+src/artifacts
+src/typechain

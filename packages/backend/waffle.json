@@ -1,0 +1,10 @@
+{
+  "compilerType": "native",
+  "sourceDirectory": "../contracts/contracts",
+  "compilerAllowedPaths": [
+    "../contracts"
+  ],
+  "outputDirectory": "./src/artifacts",
+  "typechainEnabled": true,
+  "typechainOutputDir": "../typechain"
+}

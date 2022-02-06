@@ -2,16 +2,16 @@ import type { Database } from "sqlite3";
 import { dbRun } from "../utils/db.js";
 
 export async function up(db: Database) {
-  console.log("Creating nonce table");
+  console.log("Creating scanned_block table");
   await dbRun(
     db,
-    `CREATE TABLE IF NOT EXISTS nonce (id INTEGER PRIMARY KEY, nonce INTEGER, pending_tx STRING, gas INTEGER)`
+    `CREATE TABLE IF NOT EXISTS scanned_block (id INTEGER PRIMARY KEY, token_id INTEGER, block INTEGER, block_hash TEXT)`
   );
 }
 
 export async function down(db: Database) {
-  console.log("Dropping nonce table");
-  await dbRun(db, `DROP TABLE IF EXISTS nonce`);
+  console.log("Dropping scanned_block table");
+  await dbRun(db, `DROP TABLE IF EXISTS scanned_block`);
 }
 
 export default {

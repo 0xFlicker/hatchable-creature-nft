@@ -5,6 +5,16 @@
   "version": "0.2.0",
   "configurations": [
     {
+      "args": ["--timeout", "999999", "--colors"],
+      "internalConsoleOptions": "openOnSessionStart",
+      "name": "Backend Mocha Tests",
+      "program": "${workspaceFolder}/node_modules/mocha/bin/mocha",
+      "request": "launch",
+      "skipFiles": ["<node_internals>/**"],
+      "type": "pwa-node",
+      "cwd": "${workspaceFolder}/packages/backend"
+    },
+    {
       "type": "node",
       "request": "attach",
       "address": "localhost",

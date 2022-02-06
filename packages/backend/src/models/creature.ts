@@ -17,6 +17,7 @@ export type ICreatureModelStatus = "unknown" | "nil" | "hatching" | "hatched";
 export interface ICreatureModel {
   tokenId: BigNumber;
   status: ICreatureModelStatus;
+  block?: number;
 }
 
 const definedStatus = new Set<ICreatureModelStatus>(["nil", "hatched"]);
@@ -36,6 +37,7 @@ function mapToCreatureModel(row: any): ICreatureModel {
   return {
     tokenId: mapToCreatureTokenIndex(row.token_id),
     status: mapToCreatureStatus(row.status),
+    block: row.block ? Number(row.block) : undefined,
   };
 }
 export function needsHatching(creature: ICreatureModel): boolean {
@@ -47,7 +49,7 @@ export async function getCreateFromDatabase(
   tokenId: number
 ): Promise<ICreatureModel> {
   const stmt = db.prepare(
-    `SELECT token_id, status FROM creature_models WHERE tokenId = ?`,
+    `SELECT token_id, status, block FROM creature_models WHERE tokenId = ?`,
     tokenId
   );
   const creatureModel = await statementGet(stmt);
@@ -61,17 +63,25 @@ export async function saveCreatureToDatabase(
 ) {
   await dbRun(
     db,
-    `INSERT OR REPLACE INTO creature_models (token_id, status) VALUES (?, ?)`,
+    `INSERT OR REPLACE INTO creature_models (token_id, status, block) VALUES (?, ?, ?)`,
     creature.tokenId.toNumber(),
-    creature.status
+    creature.status,
+    creature.block
   );
 }
+
+export const getCreatureCount = async (db: Database) => {
+  const stmt = db.prepare(`SELECT COUNT(*) FROM creature_models`);
+  const count = await statementGet(stmt);
+  await statementFinalize(stmt);
+  return count["COUNT(*)"];
+};
 
 export const iterateAllCreatures = (db: Database) =>
   iterate(
     db,
     mapToCreatureModel,
-    `SELECT token_id, status FROM creature_models ORDER BY token_id ASC`
+    `SELECT token_id, status, block FROM creature_models ORDER BY token_id ASC`
   );
 
 export const iterateAllCreaturesHatchingLessThan = (
@@ -81,7 +91,7 @@ export const iterateAllCreaturesHatchingLessThan = (
   iterate(
     db,
     mapToCreatureModel,
-    `SELECT token_id, status FROM creature_models WHERE status = "hatching" AND token_id <= ?`,
+    `SELECT token_id, status, block FROM creature_models WHERE status = "hatching" AND token_id <= ?`,
     tokenCount.toNumber()
   );
 

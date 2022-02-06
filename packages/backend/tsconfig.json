@@ -8,14 +8,13 @@
     "target": "ES2018",
     "sourceMap": true,
     "esModuleInterop": true,
-    "allowJs": true,
     "skipLibCheck": true,
+    "listEmittedFiles": true,
     "forceConsistentCasingInFileNames": true,
     "incremental": true,
     "resolveJsonModule": true,
     "isolatedModules": true,
     "jsx": "preserve",
-    "noEmit": false,
     "outDir": "./dist",
     "rootDir": "./src"
   },
@@ -30,6 +29,9 @@
     },
     {
       "path": "../ipfs"
+    },
+    {
+      "path": "../mockipfs"
     }
   ]
 }

@@ -33,6 +33,7 @@ export async function childCreatureErc721ContractFactory(
 
 export function cachedTokenIsMinted(contract: ChildCreatureERC721) {
   const topTokenSubject = new ReplaySubject<BigNumber>(1);
+
   contract.on("Transfer", (from: string, to: string, tokenId: BigNumber) => {
     console.log("Transfer event:", from, to, tokenId.toNumber());
     // Only care about minting events

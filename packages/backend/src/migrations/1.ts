@@ -5,7 +5,7 @@ export async function up(db: Database) {
   console.log("Creating create_models table");
   await dbRun(
     db,
-    `CREATE TABLE IF NOT EXISTS creature_models (token_id INTEGER PRIMARY KEY, status TEXT)`
+    `CREATE TABLE IF NOT EXISTS creature_models (token_id INTEGER PRIMARY KEY, status TEXT, block INTEGER)`
   );
 }
 
