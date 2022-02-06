@@ -50,7 +50,7 @@ async function main() {
     __dirname,
     "..",
     "..",
-    "shared",
+    "backend",
     "src"
   );
   const generatedPath = resolve(assetPath, "generated");

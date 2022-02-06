@@ -12,6 +12,7 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
 
   const childContractResult = await deploy("ChildCreatureERC721", {
     from: owner,
+    args: ["0x0000000000000000000000000000000000000000"],
   });
   const ownerSigner = await ethers.getSigner(owner);
   const childContractFactory = new ChildCreatureERC721__factory();

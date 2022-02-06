@@ -61,7 +61,7 @@ function useCreatureERC721(context: IContext = {}) {
       networks,
       config.chainId,
       config.network,
-      "CreatureERC721"
+      "ChildCreatureERC721"
     );
     if (contractAddress) {
       const contract = ChildCreatureERC721__factory.connect(
