@@ -1,14 +1,48 @@
 import { ethers } from "hardhat";
 import { expect } from "chai";
-import { SignerWithAddress } from "hardhat-deploy-ethers/signers";
+import { SignerWithAddress } from "@nomiclabs/hardhat-ethers/signers";
 import { ParentCreatureERC721__factory } from "../typechain";
+import { CrossChain__factory } from "../typechain/factories/CrossChain__factory";
+import { RLPReader__factory } from "../typechain/factories/RLPReader__factory";
+import { ExitPayloadReader__factory } from "../typechain/factories/ExitPayloadReader__factory";
+import { Merkle__factory } from "../typechain/factories/Merkle__factory";
+import { MerklePatriciaProof__factory } from "../typechain/factories/MerklePatriciaProof__factory";
 
 async function basicContract(signer: SignerWithAddress) {
-  const factory = new ParentCreatureERC721__factory(signer);
-  const contract = await factory.deploy(
-    "0x0000000000000000000000000000000000000000",
-    "0x0000000000000000000000000000000000000000"
+  const crossChainFactory = new CrossChain__factory(signer);
+  const crossChainLib = await crossChainFactory.deploy();
+  const rlpReaderFactory = new RLPReader__factory(signer);
+  const rlpReaderLib = await rlpReaderFactory.deploy();
+  const exitPayloadReaderFactory = new ExitPayloadReader__factory(
+    {
+      "contracts/lib/RLPReader.sol:RLPReader": rlpReaderLib.address,
+    },
+    signer
   );
+  const exitPayloadReaderLib = await exitPayloadReaderFactory.deploy();
+  const merkleFactory = new Merkle__factory(signer);
+  const merkleLib = await merkleFactory.deploy();
+  const merklePatriciaProofFactory = new MerklePatriciaProof__factory(
+    {
+      "contracts/lib/RLPReader.sol:RLPReader": rlpReaderLib.address,
+    },
+    signer
+  );
+  const merklePatriciaProofLib = await merklePatriciaProofFactory.deploy();
+
+  const factory = new ParentCreatureERC721__factory(
+    {
+      "contracts/lib/CrossChain.sol:CrossChain": crossChainLib.address,
+      "contracts/lib/RLPReader.sol:RLPReader": rlpReaderLib.address,
+      "contracts/lib/ExitPayloadReader.sol:ExitPayloadReader":
+        exitPayloadReaderLib.address,
+      "contracts/lib/Merkle.sol:Merkle": merkleLib.address,
+      "contracts/lib/MerklePatriciaProof.sol:MerklePatriciaProof":
+        merklePatriciaProofLib.address,
+    },
+    signer
+  );
+  const contract = await factory.deploy();
   return await contract.deployed();
 }
 

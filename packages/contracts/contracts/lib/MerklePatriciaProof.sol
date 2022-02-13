@@ -17,7 +17,7 @@ library MerklePatriciaProof {
     bytes memory encodedPath,
     bytes memory rlpParentNodes,
     bytes32 root
-  ) internal pure returns (bool) {
+  ) public pure returns (bool) {
     RLPReader.RLPItem memory item = RLPReader.toRlpItem(rlpParentNodes);
     RLPReader.RLPItem[] memory parentNodes = RLPReader.toList(item);
 

@@ -3,11 +3,11 @@ import { utils, Wallet } from "ethers";
 import sqlite3, { Database } from "sqlite3";
 import { stub } from "sinon";
 import { MockProvider, solidity } from "ethereum-waffle";
-import { ChildCreatureERC721__factory } from "@creaturenft/contracts";
-
 import runMigrations from "../migrations/index.js";
 import { resolver } from "../hatcher.js";
 import { getCreatureCount } from "../models/creature.js";
+import { CrossChain__factory } from "../typechain/factories/CrossChain__factory.js";
+import { ChildCreatureERC721__factory } from "../typechain/factories/ChildCreatureERC721__factory.js";
 
 use(solidity);
 
@@ -28,8 +28,16 @@ describe("#resolver", () => {
   }
 
   async function createContract() {
-    const factory = new ChildCreatureERC721__factory(owner);
-    return await factory.deploy("0x0000000000000000000000000000000000000000");
+    const libraryFactory = new CrossChain__factory(owner);
+    const crossChainLib = await libraryFactory.deploy();
+    const factory = new ChildCreatureERC721__factory(
+      {
+        "../contracts/contracts/lib/CrossChain.sol:CrossChain":
+          crossChainLib.address,
+      },
+      owner
+    );
+    return await factory.deploy();
   }
 
   async function createEmptyState() {

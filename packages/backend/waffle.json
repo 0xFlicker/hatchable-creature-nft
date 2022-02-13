@@ -4,7 +4,5 @@
   "compilerAllowedPaths": [
     "../contracts"
   ],
-  "outputDirectory": "./src/artifacts",
-  "typechainEnabled": true,
-  "typechainOutputDir": "../typechain"
+  "outputDirectory": "./src/artifacts"
 }

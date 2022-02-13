@@ -2,13 +2,19 @@ import { ethers } from "hardhat";
 import { expect } from "chai";
 import { SignerWithAddress } from "@nomiclabs/hardhat-ethers/signers";
 import { ChildCreatureERC721__factory } from "../typechain";
+import { CrossChain__factory } from "../typechain/factories/CrossChain__factory";
 
 async function basicContract(signer: SignerWithAddress) {
-  const factory = new ChildCreatureERC721__factory(signer);
-  const greeter = await factory.deploy(
-    "0x0000000000000000000000000000000000000000"
+  const libraryFactory = new CrossChain__factory(signer);
+  const crossChainLib = await libraryFactory.deploy();
+  const factory = new ChildCreatureERC721__factory(
+    {
+      "contracts/lib/CrossChain.sol:CrossChain": crossChainLib.address,
+    },
+    signer
   );
-  return await greeter.deployed();
+  const contract = await factory.deploy();
+  return await contract.deployed();
 }
 
 /*

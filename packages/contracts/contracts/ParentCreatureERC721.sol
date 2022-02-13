@@ -7,7 +7,7 @@ import "@openzeppelin/contracts/token/ERC721/ERC721.sol";
 import "@openzeppelin/contracts/token/ERC721/extensions/ERC721URIStorage.sol";
 import "./ContentMixin.sol";
 import "./IMintableERC721.sol";
-import "./CrossChain.sol";
+import "./lib/CrossChain.sol";
 import "./FxBaseRootTunnel.sol";
 
 contract ParentCreatureERC721 is

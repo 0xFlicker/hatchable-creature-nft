@@ -38,7 +38,7 @@ library CrossChain {
     return metadata;
   }
 
-  function toBase58(bytes memory source) internal pure returns (bytes memory) {
+  function toBase58(bytes memory source) public pure returns (bytes memory) {
     if (source.length == 0) return new bytes(0);
     uint8[] memory digits = new uint8[](46); //TODO: figure out exactly how much is needed
     digits[0] = 0;

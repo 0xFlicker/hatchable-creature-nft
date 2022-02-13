@@ -1,6 +1,5 @@
-import { HardhatRuntimeEnvironment } from "hardhat/types";
+import type { HardhatRuntimeEnvironment } from "hardhat/types";
 import { DeployFunction } from "hardhat-deploy/types";
-import { parseUnits } from "ethers/lib/utils";
 import { ChildCreatureERC721__factory } from "../typechain";
 import {
   childManagerProxy,
@@ -20,17 +19,22 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
   const { owner } = await getNamedAccounts();
 
   const networkName = network.name as "matic" | "maticmum";
-  const childContractArgs = [childManagerProxy[networkName]];
+  const crossChainDeployment = await deployments.get("CrossChain");
   const childContractResult = await deploy("ChildCreatureERC721", {
     from: owner,
-    args: childContractArgs,
+    libraries: {
+      CrossChain: crossChainDeployment.address,
+    },
   });
 
   const ownerSigner = await ethers.getSigner(owner);
-  const childContractFactory = new ChildCreatureERC721__factory();
+  const childContractFactory = new ChildCreatureERC721__factory({
+    "contracts/lib/CrossChain.sol:CrossChain": crossChainDeployment.address,
+  });
   const childContract = childContractFactory
     .connect(ownerSigner)
     .attach(childContractResult.address);
+  await childContract.grantRole(await childContract.ROLE_REVEALER(), owner);
   if (preApprovedProxyAddress[networkName]) {
     await childContract.setPreApprovedProxy(
       preApprovedProxyAddress[networkName]
@@ -43,10 +47,20 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
       fxStateTransferChild[networkName]
     );
   }
-  await run("verify:verify", {
-    address: childContract.address,
-    constructorArguments: childContractArgs,
-  });
+  if (childManagerProxy[networkName]) {
+    await childContract.grantRole(
+      await childContract.ROLE_DEPOSITOR(),
+      childManagerProxy[networkName]
+    );
+  }
+  try {
+    await run("verify:verify", {
+      address: childContract.address,
+      constructorArguments: [],
+    });
+  } catch (err: any) {
+    console.log(`Error verifying child contract: ${err}`);
+  }
 };
 export default func;
 func.tags = ["matic", "maticmum"];

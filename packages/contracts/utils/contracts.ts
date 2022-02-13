@@ -17,8 +17,8 @@ export const preApprovedProxyAddress = {
 };
 
 export const fxStateTransferChild = {
-  matic: "0xCf73231F28B7331BBe3124B907840A94851f9f11",
-  maticmum: "0x8397259c983751DAf40400790063935a11afa28a",
+  maticmum: "0xCf73231F28B7331BBe3124B907840A94851f9f11",
+  matic: "0x8397259c983751DAf40400790063935a11afa28a",
 };
 
 export const fxStateTransferRoot = {

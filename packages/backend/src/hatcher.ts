@@ -10,7 +10,7 @@ import {
   Network,
 } from "@creaturenft/web3";
 
-import { providers, BigNumber, utils, Contract } from "ethers";
+import { providers, BigNumber, utils, Contract, Signer, Wallet } from "ethers";
 import {
   ICreatureModel,
   iterateAllCreatures,
@@ -19,7 +19,6 @@ import {
   removeCreaturesFromDatabase,
   saveCreatureToDatabase,
 } from "./models/creature.js";
-import { ChildCreatureERC721 } from "@creaturenft/contracts/typechain";
 import {
   addPendingUpdateTransaction,
   getPendingUpdateTransactions,
@@ -32,6 +31,7 @@ import {
   getLastScannedBlock,
   IScannedBlock,
 } from "./models/scannedBlock.js";
+import { ChildCreatureERC721 } from "./typechain/index.js";
 
 const CONFIRMING_BLOCKS = 3;
 
@@ -74,13 +74,14 @@ async function getDeploymentBlock(
   contract: Contract,
   provider: providers.Provider
 ) {
-  let blockNumber = contract.deployTransaction.blockNumber;
-  if (!blockNumber) {
+  let blockNumber = contract?.deployTransaction?.blockNumber;
+  if (contract?.deployTransaction && !blockNumber) {
     // OKay... well is there a transaction hash?
-    const transactionHash = contract.deployTransaction.hash;
+    const transactionHash = contract?.deployTransaction?.hash;
     const transaction = await provider.getTransaction(transactionHash);
     blockNumber = transaction.blockNumber;
   }
+
   if (!blockNumber) {
     // Can't find anything, so we'll just search the last 100 blocks
     blockNumber = await provider.getBlockNumber();
@@ -138,9 +139,11 @@ export async function resolver(
   const currentBlockNumber = await provider.getBlockNumber();
   const currentBlockHash = (await provider.getBlock(currentBlockNumber)).hash;
   // get relevant transactions...
-  const transactionMinted = childCreatureContract.filters[
-    "Transfer(address,address,uint256)"
-  ]("0x0000000000000000000000000000000000000000", null, null);
+  const transactionMinted = childCreatureContract.filters.Transfer(
+    "0x0000000000000000000000000000000000000000",
+    null,
+    null
+  );
   const mintedEvents = await childCreatureContract.queryFilter(
     transactionMinted,
     lastScanned.block - 1
@@ -340,7 +343,16 @@ export default async function (
 
   const { topToken$, contract: creatureContract } =
     await childCreatureErc721Factory(network);
-
+  let signer: Signer;
+  try {
+    signer = provider.getSigner(ownerAddress);
+  } catch (err) {
+    if (!process.env.PRIVATE_KEY) {
+      throw new Error("Please set the PRIVATE_KEY environment variable");
+    }
+    const wallet = new Wallet(process.env.PRIVATE_KEY, provider);
+    signer = wallet;
+  }
   // Start the resolver
   console.log("Starting resolver...");
   merge(interval(intervalMs), topToken$)
@@ -349,7 +361,7 @@ export default async function (
         from(
           resolver(
             numberOfBlocksToWait,
-            creatureContract.connect(provider.getSigner(ownerAddress)),
+            creatureContract.connect(signer),
             provider,
             async (lastKnownTokenId, tokenCount) =>
               await updateBaseUriToTokenCount(

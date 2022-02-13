@@ -8,7 +8,7 @@ import "@openzeppelin/contracts/token/ERC721/ERC721.sol";
 import "@openzeppelin/contracts/token/ERC721/extensions/ERC721URIStorage.sol";
 import "@openzeppelin/contracts/utils/Strings.sol";
 import "./ContentMixin.sol";
-import "./CrossChain.sol";
+import "./lib/CrossChain.sol";
 import "./IBaseURIUpdateable.sol";
 import "./FxBaseChildTunnel.sol";
 
@@ -114,6 +114,7 @@ contract ChildCreatureERC721 is
     onlyRole(ROLE_REVEALER)
   {
     m_baseURI = _baseURIBytes;
+    _sendMessageToRoot(CrossChain.packer(tokenCount(), _baseURIBytes));
     emit BaseURIUpdated(_baseURIBytes);
   }
 

@@ -56,7 +56,7 @@ library ExitPayloadReader {
   }
 
   function toExitPayload(bytes memory data)
-    internal
+    external
     pure
     returns (ExitPayload memory)
   {
@@ -66,7 +66,7 @@ library ExitPayloadReader {
   }
 
   function getHeaderNumber(ExitPayload memory payload)
-    internal
+    external
     pure
     returns (uint256)
   {
@@ -74,7 +74,7 @@ library ExitPayloadReader {
   }
 
   function getBlockProof(ExitPayload memory payload)
-    internal
+    external
     pure
     returns (bytes memory)
   {
@@ -82,7 +82,7 @@ library ExitPayloadReader {
   }
 
   function getBlockNumber(ExitPayload memory payload)
-    internal
+    external
     pure
     returns (uint256)
   {
@@ -90,7 +90,7 @@ library ExitPayloadReader {
   }
 
   function getBlockTime(ExitPayload memory payload)
-    internal
+    external
     pure
     returns (uint256)
   {
@@ -98,7 +98,7 @@ library ExitPayloadReader {
   }
 
   function getTxRoot(ExitPayload memory payload)
-    internal
+    external
     pure
     returns (bytes32)
   {
@@ -106,7 +106,7 @@ library ExitPayloadReader {
   }
 
   function getReceiptRoot(ExitPayload memory payload)
-    internal
+    external
     pure
     returns (bytes32)
   {
@@ -114,7 +114,7 @@ library ExitPayloadReader {
   }
 
   function getReceipt(ExitPayload memory payload)
-    internal
+    external
     pure
     returns (Receipt memory receipt)
   {
@@ -144,7 +144,7 @@ library ExitPayloadReader {
   }
 
   function getReceiptProof(ExitPayload memory payload)
-    internal
+    external
     pure
     returns (bytes memory)
   {
@@ -152,7 +152,7 @@ library ExitPayloadReader {
   }
 
   function getBranchMaskAsBytes(ExitPayload memory payload)
-    internal
+    external
     pure
     returns (bytes memory)
   {
@@ -160,7 +160,7 @@ library ExitPayloadReader {
   }
 
   function getBranchMaskAsUint(ExitPayload memory payload)
-    internal
+    external
     pure
     returns (uint256)
   {
@@ -168,7 +168,7 @@ library ExitPayloadReader {
   }
 
   function getReceiptLogIndex(ExitPayload memory payload)
-    internal
+    public
     pure
     returns (uint256)
   {
@@ -177,14 +177,14 @@ library ExitPayloadReader {
 
   // Receipt methods
   function toBytes(Receipt memory receipt)
-    internal
+    external
     pure
     returns (bytes memory)
   {
     return receipt.raw;
   }
 
-  function getLog(Receipt memory receipt) internal pure returns (Log memory) {
+  function getLog(Receipt memory receipt) external pure returns (Log memory) {
     RLPReader.RLPItem memory logData = receipt.data[3].toList()[
       receipt.logIndex
     ];
@@ -192,25 +192,25 @@ library ExitPayloadReader {
   }
 
   // Log methods
-  function getEmitter(Log memory log) internal pure returns (address) {
+  function getEmitter(Log memory log) external pure returns (address) {
     return RLPReader.toAddress(log.list[0]);
   }
 
-  function getTopics(Log memory log) internal pure returns (LogTopics memory) {
+  function getTopics(Log memory log) external pure returns (LogTopics memory) {
     return LogTopics(log.list[1].toList());
   }
 
-  function getData(Log memory log) internal pure returns (bytes memory) {
+  function getData(Log memory log) external pure returns (bytes memory) {
     return log.list[2].toBytes();
   }
 
-  function toRlpBytes(Log memory log) internal pure returns (bytes memory) {
+  function toRlpBytes(Log memory log) external pure returns (bytes memory) {
     return log.data.toRlpBytes();
   }
 
   // LogTopics methods
   function getField(LogTopics memory topics, uint256 index)
-    internal
+    external
     pure
     returns (RLPReader.RLPItem memory)
   {

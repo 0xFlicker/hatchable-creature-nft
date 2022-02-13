@@ -5,6 +5,14 @@
   "version": "0.2.0",
   "configurations": [
     {
+      "name": "Launch BurnProof",
+      "program": "${workspaceFolder}/packages/backend/dist/burnProof.js",
+      "request": "launch",
+      "skipFiles": ["<node_internals>/**"],
+      "type": "pwa-node",
+      "cwd": "${workspaceFolder}/packages/backend"
+    },
+    {
       "args": ["--timeout", "999999", "--colors"],
       "internalConsoleOptions": "openOnSessionStart",
       "name": "Backend Mocha Tests",
